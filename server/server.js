@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('./config/firebase-admin');
 const express = require('express');
 const cors = require('cors');
 const { v4: uuidv4 } = require('uuid');
@@ -7,6 +8,11 @@ const mongoose = require('mongoose');
 // Models
 const PoliceFeed = require('./models/PoliceFeed');
 const DigitalId = require('./models/DigitalId');
+
+// Routes
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,6 +30,10 @@ mongoose.connect(MONGODB_URI)
 
 
 // ======= ROUTES =======
+
+app.use('/api/auth', authRoutes);
+app.use('/api/user', userRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Health Check
 app.get('/api/health', (req, res) => {

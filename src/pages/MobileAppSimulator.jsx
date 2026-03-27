@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ShieldAlert, MapPin, Navigation, Bell, Settings, AlertTriangle, ShieldCheck, QrCode as QrCodeIcon, Sliders, ChevronRight, Download, FileText, Info, LogOut, CheckCircle } from "lucide-react";
+import { ShieldAlert, MapPin, Navigation, Bell, Settings, AlertTriangle, ShieldCheck, QrCode as QrCodeIcon, Sliders, ChevronRight, Download, FileText, Info, LogOut, CheckCircle, Bot, Send, Mic } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { QRCodeCanvas } from "qrcode.react";
 
@@ -10,6 +10,27 @@ export default function MobileAppSimulator() {
     const [activeTab, setActiveTab] = useState('home');
     const [autoEFir, setAutoEFir] = useState(false);
     const [permissionsChecked, setPermissionsChecked] = useState(false);
+    const [chatInput, setChatInput] = useState("");
+    const [messages, setMessages] = useState([
+        { id: 1, sender: 'ai', text: 'Hi John! I am your SafeTour AI Guide. How can I assist you in Darjeeling today?' },
+        { id: 2, sender: 'user', text: 'Are there any restricted areas near me?' },
+        { id: 3, sender: 'ai', text: 'Yes, you are currently 2km away from the Senchal Wildlife restricted core zone. Please stay on the designated paths.' }
+    ]);
+
+    const handleSendMessage = () => {
+        if (!chatInput.trim()) return;
+        setMessages([...messages, { id: Date.now(), sender: 'user', text: chatInput }]);
+        setChatInput("");
+
+        // Simulate AI response
+        setTimeout(() => {
+            setMessages(prev => [...prev, {
+                id: Date.now(),
+                sender: 'ai',
+                text: "I'm monitoring your route. Stay safe! Let me know if you need emergency assistance or directions."
+            }]);
+        }, 1000);
+    };
 
     const handlePanic = async () => {
         setPanicMode(true);
@@ -226,6 +247,65 @@ export default function MobileAppSimulator() {
                                     Show this QR code at checkpoints, hotels, and restricted areas for seamless verification.
                                 </p>
                             </motion.div>
+                        ) : activeTab === 'ai' ? (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="flex flex-col h-full -mx-5 px-5"
+                                style={{ height: 'calc(100% - 60px)' }}
+                            >
+                                <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-4 text-white mb-4 flex items-center shadow-md">
+                                    <div className="bg-white/20 p-2 rounded-full mr-3 border border-white/20">
+                                        <Bot className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-bold text-sm">SafeTour AI Guide</h3>
+                                        <p className="text-[10px] text-indigo-100 flex items-center mt-0.5">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mr-1 animate-pulse"></span> Online • Local Context Active
+                                        </p>
+                                    </div>
+                                </div>
+
+                                {/* Chat Messages Area */}
+                                <div className="flex-1 overflow-y-auto space-y-4 pb-20 pr-2 scrollbar-hide">
+                                    {messages.map((msg) => (
+                                        <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                            {msg.sender === 'ai' && (
+                                                <div className="w-6 h-6 rounded-full bg-indigo-100 flex items-center justify-center mr-2 shrink-0 border border-indigo-200 mt-1">
+                                                    <Bot className="w-3.5 h-3.5 text-indigo-600" />
+                                                </div>
+                                            )}
+                                            <div className={`max-w-[75%] rounded-2xl p-3 text-sm ${msg.sender === 'user'
+                                                    ? 'bg-brand-500 text-white rounded-tr-sm shadow-sm shadow-brand-500/20'
+                                                    : 'bg-white text-slate-700 rounded-tl-sm border border-slate-200/60 shadow-sm'
+                                                }`}>
+                                                {msg.text}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Chat Input Area (Fixed slightly above the bottom tabs) */}
+                                <div className="absolute bottom-24 inset-x-5 flex items-center space-x-2 bg-white/80 backdrop-blur-md p-2 rounded-full border border-slate-200 shadow-lg shadow-slate-200/50">
+                                    <button className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors shrink-0">
+                                        <Mic className="w-5 h-5" />
+                                    </button>
+                                    <input
+                                        type="text"
+                                        value={chatInput}
+                                        onChange={(e) => setChatInput(e.target.value)}
+                                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                                        placeholder="Ask about safety, routes..."
+                                        className="flex-1 bg-transparent text-sm text-slate-800 focus:outline-none px-2 placeholder-slate-400"
+                                    />
+                                    <button
+                                        onClick={handleSendMessage}
+                                        className="w-10 h-10 rounded-full bg-brand-500 flex items-center justify-center text-white shadow-md shadow-brand-500/30 hover:bg-brand-600 transition-colors shrink-0"
+                                    >
+                                        <Send className="w-4 h-4" />
+                                    </button>
+                                </div>
+                            </motion.div>
                         ) : (
                             <motion.div
                                 initial={{ opacity: 0, x: 20 }}
@@ -349,6 +429,13 @@ export default function MobileAppSimulator() {
                         >
                             <QrCodeIcon className="w-6 h-6 mb-1" />
                             <span className="text-[10px] font-medium tracking-wide">Digital ID</span>
+                        </div>
+                        <div
+                            className={`flex flex-col items-center cursor-pointer transition-colors ${activeTab === 'ai' ? 'text-brand-600' : 'text-slate-400 hover:text-slate-600'}`}
+                            onClick={() => setActiveTab('ai')}
+                        >
+                            <Bot className="w-6 h-6 mb-1" />
+                            <span className="text-[10px] font-medium tracking-wide">AI Guide</span>
                         </div>
                         <div
                             className={`flex flex-col items-center cursor-pointer transition-colors ${activeTab === 'settings' ? 'text-brand-600' : 'text-slate-400 hover:text-slate-600'}`}

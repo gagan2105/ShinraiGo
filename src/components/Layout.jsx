@@ -6,6 +6,8 @@ const navigation = [
     { name: 'Dashboard', href: '/', icon: LayoutDashboard },
     { name: 'Police Cmd', href: '/police-cmd', icon: ShieldCheck },
     { name: 'Anomaly Detection', href: '/anomalies', icon: AlertTriangle },
+    { name: 'User Portal', href: '/user-portal', icon: UserCircle },
+    { name: 'Mobile Sim', href: '/mobile-sim', icon: Smartphone },
 ];
 
 export default function Layout() {
