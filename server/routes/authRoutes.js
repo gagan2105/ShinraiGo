@@ -11,21 +11,35 @@ const { verifyToken } = require('../middleware/authMiddleware');
  */
 router.post('/sync', verifyToken, async (req, res) => {
     try {
-        const { uid, email, name } = req.user;
-        // req.user from our middleware might only have uid/email decoded, 
-        // so we can also check req.body.name if we passed it specifically.
-        const displayName = req.body.name || name || 'Unknown User';
+        const { uid, email } = req.user;
+        const displayName = req.body.name || req.user.name || 'Unknown User';
 
-        let user = await User.findOne({ firebaseUid: uid });
+        // 1. Check if user exists by Firebase UID OR Email (to prevent duplicates during testing)
+        let user = await User.findOne({ 
+            $or: [
+                { firebaseUid: uid },
+                { email: email }
+            ]
+        });
+        
         let isNewUser = false;
 
-        if (!user) {
+        if (user) {
+            // Update existing user details if they changed
+            user.firebaseUid = uid;
+            user.name = displayName;
+            // Force admin role for the nexus email
+            if (email === 'nexus@shinraigo.admin') {
+                user.role = 'admin';
+            }
+            await user.save();
+        } else {
             // First time this Firebase user is hitting our backend
             user = new User({
                 firebaseUid: uid,
                 email: email,
                 name: displayName,
-                role: 'user' // Default Role
+                role: email === 'nexus@shinraigo.admin' ? 'admin' : 'user'
             });
             await user.save();
             isNewUser = true;

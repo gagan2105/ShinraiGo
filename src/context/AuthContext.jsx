@@ -52,8 +52,16 @@ export const AuthProvider = ({ children }) => {
                     setCurrentUser(null);
                 }
             } else {
-                setCurrentUser(null);
-                setUserRole(null);
+                // IMPORTANT: Don't overwrite if it was a manual dummy login
+                // We should only clear it if we weren't in a manually started session
+                setCurrentUser(prevUser => {
+                    // Check if it's a real Firebase user by availability of functions like getIdToken
+                    if (prevUser && prevUser.isDummy) {
+                        return prevUser;
+                    }
+                    setUserRole(null);
+                    return null;
+                });
             }
 
             setLoading(false);
@@ -63,10 +71,26 @@ export const AuthProvider = ({ children }) => {
         return unsubscribe;
     }, []);
 
+    const setManualUser = (user, role) => {
+        setCurrentUser({ ...user, isDummy: true });
+        setUserRole(role);
+        setLoading(false);
+    };
+
+    const logout = async () => {
+        setLoading(true);
+        await signOut(auth);
+        setCurrentUser(null);
+        setUserRole(null);
+        setLoading(false);
+    };
+
     const value = {
         currentUser,
         userRole,
-        loading
+        loading,
+        setManualUser,
+        logout
     };
 
     return (

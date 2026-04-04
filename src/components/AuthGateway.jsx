@@ -18,7 +18,7 @@ const AuthGateway = () => {
     }
 
     if (userRole === "admin" || userRole === "police") {
-        return <Navigate to="/admin/dashboard" replace />;
+        return <Navigate to="/admin/police-cmd" replace />;
     }
 
     // Default for 'user'

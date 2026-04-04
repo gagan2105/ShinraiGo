@@ -1,8 +1,7 @@
 import { Outlet, NavLink } from "react-router-dom";
 import { LayoutDashboard, ShieldCheck, AlertTriangle, LogOut } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { auth } from "../../lib/firebase";
-import { signOut } from "firebase/auth";
+import { useAuth } from "../../context/AuthContext";
 
 const navigation = [
     { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
@@ -11,8 +10,9 @@ const navigation = [
 ];
 
 export default function AdminLayout() {
+    const { logout } = useAuth();
     const handleLogout = () => {
-        signOut(auth);
+        logout();
     };
 
     return (

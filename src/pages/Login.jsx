@@ -6,6 +6,7 @@ import axios from "axios";
 import { Shield, Mail, Lock, LogIn, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
     const [email, setEmail] = useState("");
@@ -13,6 +14,7 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const [successAnim, setSuccessAnim] = useState(false);
     const navigate = useNavigate();
+    const { setManualUser } = useAuth();
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -40,7 +42,7 @@ const Login = () => {
 
             // Redirect immediately
             if (role === "admin" || role === "police") {
-                navigate("/admin/dashboard");
+                navigate("/admin/police-cmd");
             } else {
                 navigate("/user/home");
             }
@@ -83,7 +85,7 @@ const Login = () => {
 
             // Redirect immediately
             if (role === "admin" || role === "police") {
-                navigate("/admin/dashboard");
+                navigate("/admin/police-cmd");
             } else {
                 navigate("/user/home");
             }
@@ -91,6 +93,52 @@ const Login = () => {
         } catch (error) {
             console.error("Google sign-in error:", error);
             toast.error(error.message || "Failed to sign in with Google");
+            setSuccessAnim(false);
+            setLoading(false);
+        }
+    };
+
+    const handleDummyLogin = async (type) => {
+        setLoading(true);
+        try {
+            // Use a mock JWT token that our backend bypass can still process
+            // We're just using a string that looks like a JWT or even just a keyword
+            const mockToken = type === "admin" ? "DUMMY_ADMIN_TOKEN" : "DUMMY_USER_TOKEN";
+            
+            setSuccessAnim(true);
+            toast.success(`Logged in via Developer ${type === "admin" ? "Admin" : "Tourist"} Mode`);
+
+            // Sync with backend using the mock token
+            // Our backend middleware will catch the "invalid token" then apply the bypass
+            // BUT we can also pass hints in headers if we want to be specific
+            const response = await axios.post("http://localhost:3000/api/auth/sync", {
+                name: type === "admin" ? "Nexus Admin" : "Demo Tourist"
+            }, {
+                headers: {
+                    Authorization: `Bearer ${mockToken}`
+                }
+            });
+
+            const role = response.data?.user?.role || "user";
+
+            // Manually set the dummy user in our AuthContext so and AuthRoute won't kick us out
+            setManualUser({
+                uid: response.data.user.firebaseUid,
+                email: response.data.user.email,
+                displayName: response.data.user.name,
+                isDummy: true
+            }, role);
+
+            // Redirect immediately
+            if (role === "admin" || role === "police") {
+                navigate("/admin/police-cmd");
+            } else {
+                navigate("/user/home");
+            }
+
+        } catch (error) {
+            console.error("Dummy login error:", error);
+            toast.error("Dummy login failed at sync step");
             setSuccessAnim(false);
             setLoading(false);
         }
@@ -220,6 +268,27 @@ const Login = () => {
                         </svg>
                         Sign in with Google
                     </button>
+
+                    {/* Developer Dummy Logins */}
+                    <div className="mt-8 pt-6 border-t border-slate-800 relative z-10">
+                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest text-center mb-4">Developer Demo</p>
+                        <div className="grid grid-cols-2 gap-3">
+                            <button
+                                onClick={() => handleDummyLogin("admin")}
+                                className="bg-slate-800/50 hover:bg-blue-900/30 border border-slate-700 hover:border-blue-500/50 text-slate-300 hover:text-blue-400 text-xs py-2 px-3 rounded-lg transition-all flex items-center justify-center gap-2"
+                            >
+                                <Shield className="w-3 h-3" />
+                                Admin Mode
+                            </button>
+                            <button
+                                onClick={() => handleDummyLogin("user")}
+                                className="bg-slate-800/50 hover:bg-emerald-900/30 border border-slate-700 hover:border-emerald-500/50 text-slate-300 hover:text-emerald-400 text-xs py-2 px-3 rounded-lg transition-all flex items-center justify-center gap-2"
+                            >
+                                <LogIn className="w-3 h-3" />
+                                Tourist Portal
+                            </button>
+                        </div>
+                    </div>
 
                     <div className="mt-6 text-center text-slate-400 relative z-10">
                         Don't have an account?{" "}

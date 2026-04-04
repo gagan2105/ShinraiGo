@@ -1,8 +1,7 @@
 import { Outlet, NavLink } from "react-router-dom";
 import { UserCircle, Smartphone, LogOut } from "lucide-react";
 import { cn } from "../../lib/utils";
-import { auth } from "../../lib/firebase";
-import { signOut } from "firebase/auth";
+import { useAuth } from "../../context/AuthContext";
 
 const navigation = [
     { name: 'Portal Home', href: '/user/home', icon: UserCircle },
@@ -10,8 +9,9 @@ const navigation = [
 ];
 
 export default function UserLayout() {
+    const { logout } = useAuth();
     const handleLogout = () => {
-        signOut(auth);
+        logout();
     };
 
     return (

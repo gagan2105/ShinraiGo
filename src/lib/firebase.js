@@ -4,13 +4,13 @@ import { getFirestore } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyCZv-Yc1E3AuWOWDxM9RQvjyL9UYN7Vkmc",
-    authDomain: "shinraigo-3d145.firebaseapp.com",
-    projectId: "shinraigo-3d145",
-    storageBucket: "shinraigo-3d145.firebasestorage.app",
-    messagingSenderId: "896202634814",
-    appId: "1:896202634814:web:6b2d52afd26b31d2b9c36f",
-    measurementId: "G-ED97Y7FZFT"
+  apiKey: "AIzaSyCVU6-ULT6OHYSGBHmvM3ne3VNLdlQSesg",
+  authDomain: "shinraigo-494f5.firebaseapp.com",
+  projectId: "shinraigo-494f5",
+  storageBucket: "shinraigo-494f5.firebasestorage.app",
+  messagingSenderId: "823144710360",
+  appId: "1:823144710360:web:0f5fa04ffaa64e2402d7ad",
+  measurementId: "G-ZLB7EM2B9V"
 };
 
 // Initialize Firebase
