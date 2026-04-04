@@ -3,7 +3,7 @@ import { signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from 
 import { auth } from "../lib/firebase";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
-import { Shield, Mail, Lock, LogIn, Loader2, CheckCircle2 } from "lucide-react";
+import { Shield, Mail, Lock, LogIn, Loader2, CheckCircle2, Map } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";

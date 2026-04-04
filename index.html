@@ -5,6 +5,23 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>temp</title>
+    <script>
+      window.onerror = function(message, source, lineno, colno, error) {
+        document.body.innerHTML = '<div style="color:red; padding:20px; font-family:monospace; background:#fff; position:fixed; inset:0; z-index:9999;">' +
+          '<h3>Fatal React/JS Crash:</h3>' +
+          '<p><strong>Message:</strong> ' + message + '</p>' +
+          '<p><strong>Location:</strong> ' + source + ':' + lineno + ':' + colno + '</p>' +
+          '<pre>' + (error && error.stack ? error.stack : 'No stack trace') + '</pre>' +
+        '</div>';
+      };
+      window.addEventListener('unhandledrejection', function(event) {
+         document.body.innerHTML = '<div style="color:red; padding:20px; font-family:monospace; background:#fff; position:fixed; inset:0; z-index:9999;">' +
+          '<h3>Unhandled Promise Rejection:</h3>' +
+          '<p><strong>Reason:</strong> ' + event.reason + '</p>' +
+          '<pre>' + (event.reason && event.reason.stack ? event.reason.stack : '') + '</pre>' +
+        '</div>';
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>
