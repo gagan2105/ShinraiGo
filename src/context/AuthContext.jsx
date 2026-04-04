@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState } from "react";
 import { auth } from "../lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import axios from "axios";
+import { ENDPOINTS } from "../lib/api";
 
 const AuthContext = createContext();
 
@@ -25,7 +26,7 @@ export const AuthProvider = ({ children }) => {
 
                     // 2. Send token to our Node Backend to sync user/fetch MongoDB role
                     // Note: We send displayName explicitly since it might not be decoded from token immediately upon signup
-                    const response = await axios.post("http://localhost:3000/api/auth/sync", {
+                    const response = await axios.post(ENDPOINTS.SYNC, {
                         name: user.displayName || user.email?.split('@')[0]
                     }, {
                         headers: {

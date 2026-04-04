@@ -3,6 +3,7 @@ import { QrCode, Shield, MapPin, Phone, User, PlusCircle, CheckCircle2 } from "l
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { QRCodeCanvas } from "qrcode.react";
+import { ENDPOINTS } from "../lib/api";
 
 export default function DigitalID() {
     const [formData, setFormData] = useState({
@@ -28,7 +29,7 @@ export default function DigitalID() {
         setIsGenerating(true);
 
         try {
-            const response = await fetch('http://localhost:3000/api/digital-id/mint', {
+            const response = await fetch(ENDPOINTS.DIGITAL_ID_MINT, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)

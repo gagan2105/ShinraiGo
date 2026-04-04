@@ -31,6 +31,8 @@ router.post('/sync', verifyToken, async (req, res) => {
             // Force admin role for the nexus email
             if (email === 'nexus@shinraigo.admin') {
                 user.role = 'admin';
+            } else if (email === 'officer@shinraigo.police') {
+                user.role = 'police';
             }
             await user.save();
         } else {
@@ -39,7 +41,7 @@ router.post('/sync', verifyToken, async (req, res) => {
                 firebaseUid: uid,
                 email: email,
                 name: displayName,
-                role: email === 'nexus@shinraigo.admin' ? 'admin' : 'user'
+                role: email === 'nexus@shinraigo.admin' ? 'admin' : (email === 'officer@shinraigo.police' ? 'police' : 'user')
             });
             await user.save();
             isNewUser = true;

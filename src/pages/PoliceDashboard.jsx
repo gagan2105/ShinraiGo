@@ -3,6 +3,7 @@ import { Shield, MapPin, Bell, AlertTriangle, FileText, CheckCircle, Search, Use
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import MapComponent from "../components/MapComponent";
+import { ENDPOINTS } from "../lib/api";
 
 export default function PoliceDashboard() {
     const [selectedUser, setSelectedUser] = useState(null);
@@ -13,7 +14,7 @@ export default function PoliceDashboard() {
         // Fetch live feed initially
         const fetchFeed = async () => {
             try {
-                const response = await fetch('http://localhost:3000/api/feed/live');
+                const response = await fetch(ENDPOINTS.LIVE_FEED);
                 const data = await response.json();
                 setFeed(data);
                 setIsLoading(false);
@@ -123,9 +124,43 @@ export default function PoliceDashboard() {
                                 </div>
                             </motion.div>
                         ) : (
-                            <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-3 pb-12">
+                            <div className="h-full flex flex-col items-center justify-center text-slate-400 space-y-4 pb-12">
                                 <Search className="w-12 h-12 opacity-20" />
-                                <p className="text-sm">Select an incident from the feed to view details.</p>
+                                <div className="text-center">
+                                    <p className="text-sm">Select an incident from the feed.</p>
+                                    <p className="text-[10px] mt-1 opacity-60">Waiting for live data...</p>
+                                </div>
+                                
+                                <div className="pt-8 w-full px-4">
+                                    <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100/50 text-center">
+                                        <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-3">Developer Tools</p>
+                                        <button 
+                                            onClick={async () => {
+                                                try {
+                                                    const dummyData = {
+                                                        user: "Mock Tourist " + Math.floor(Math.random() * 1000),
+                                                        location: "Sector " + (Math.floor(Math.random() * 20)+1) + ", New Delhi",
+                                                        idNumber: "AADHAAR-" + Math.floor(Math.random() * 1000000000),
+                                                        phone: "+91 98765 43" + Math.floor(Math.random() * 999),
+                                                        bloodGroup: ["A+", "B+", "O+", "AB+"][Math.floor(Math.random() * 4)]
+                                                    };
+                                                    await fetch(ENDPOINTS.PANIC_ALERT, {
+                                                        method: 'POST',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify(dummyData)
+                                                    });
+                                                    toast.success("Dummy SOS alert broadcasted!");
+                                                } catch (e) {
+                                                    toast.error("Failed to simulate alert. Check backend.");
+                                                }
+                                            }}
+                                            className="w-full bg-blue-600 text-white text-xs font-bold py-2 rounded-lg hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2"
+                                        >
+                                            <AlertTriangle className="w-3 h-3" />
+                                            Simulate SOS Alert
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </AnimatePresence>

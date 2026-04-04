@@ -23,6 +23,9 @@ const verifyToken = async (req, res, next) => {
         if (idToken.toUpperCase().includes("DUMMY_ADMIN_TOKEN")) {
             console.log('[Auth Bypass] Admin Token Detected');
             decodedToken = { uid: 'mock-admin-uid', email: 'nexus@shinraigo.admin', name: 'Nexus Admin' };
+        } else if (idToken.toUpperCase().includes("DUMMY_POLICE_TOKEN")) {
+            console.log('[Auth Bypass] Police Token Detected');
+            decodedToken = { uid: 'mock-police-uid', email: 'officer@shinraigo.police', name: 'Duty Officer' };
         } else if (idToken.toUpperCase().includes("DUMMY_USER_TOKEN")) {
             console.log('[Auth Bypass] User Token Detected');
             decodedToken = { uid: 'mock-user-uid', email: 'demo@shinraigo.test', name: 'Demo Tourist' };

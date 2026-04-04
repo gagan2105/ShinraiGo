@@ -2,6 +2,7 @@ import { useState } from "react";
 import { ShieldAlert, MapPin, Navigation, Bell, Settings, AlertTriangle, ShieldCheck, QrCode as QrCodeIcon, Sliders, ChevronRight, Download, FileText, Info, LogOut, CheckCircle, Bot, Send, Mic } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { QRCodeCanvas } from "qrcode.react";
+import { ENDPOINTS } from "../lib/api";
 
 export default function MobileAppSimulator() {
     const [isTracking, setIsTracking] = useState(true);
@@ -36,7 +37,7 @@ export default function MobileAppSimulator() {
         setPanicMode(true);
 
         try {
-            const response = await fetch('http://localhost:3000/api/alerts/panic', {
+            const response = await fetch(ENDPOINTS.PANIC_ALERT, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

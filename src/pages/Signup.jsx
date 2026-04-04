@@ -6,6 +6,7 @@ import axios from "axios";
 import { Shield, Mail, Lock, User, UserPlus, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { ENDPOINTS } from "../lib/api";
 
 const Signup = () => {
     const [name, setName] = useState("");
@@ -31,7 +32,7 @@ const Signup = () => {
             const idToken = await user.getIdToken(true);
 
             // Fetch role from backend to determine redirect
-            const response = await axios.post("http://localhost:3000/api/auth/sync", {
+            const response = await axios.post(ENDPOINTS.SYNC, {
                 name: name
             }, {
                 headers: {
@@ -72,7 +73,7 @@ const Signup = () => {
             const idToken = await user.getIdToken(true);
 
             // Send Google user data to backend sync
-            const response = await axios.post("http://localhost:3000/api/auth/sync", {
+            const response = await axios.post(ENDPOINTS.SYNC, {
                 name: user.displayName
             }, {
                 headers: {

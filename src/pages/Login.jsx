@@ -7,6 +7,7 @@ import { Shield, Mail, Lock, LogIn, Loader2, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../context/AuthContext";
+import { ENDPOINTS } from "../lib/api";
 
 const Login = () => {
     const [email, setEmail] = useState("");
@@ -32,7 +33,7 @@ const Login = () => {
             const idToken = await user.getIdToken(true);
 
             // Fetch role from backend to determine redirect
-            const response = await axios.post("http://localhost:3000/api/auth/sync", {}, {
+            const response = await axios.post(ENDPOINTS.SYNC, {}, {
                 headers: {
                     Authorization: `Bearer ${idToken}`
                 }
@@ -70,7 +71,7 @@ const Login = () => {
             const idToken = await user.getIdToken(true);
 
             // Send Google user data to backend sync
-            const response = await axios.post("http://localhost:3000/api/auth/sync", {
+            const response = await axios.post(ENDPOINTS.SYNC, {
                 name: user.displayName
             }, {
                 headers: {
@@ -103,16 +104,16 @@ const Login = () => {
         try {
             // Use a mock JWT token that our backend bypass can still process
             // We're just using a string that looks like a JWT or even just a keyword
-            const mockToken = type === "admin" ? "DUMMY_ADMIN_TOKEN" : "DUMMY_USER_TOKEN";
+            const mockToken = type === "admin" ? "DUMMY_ADMIN_TOKEN" : (type === "police" ? "DUMMY_POLICE_TOKEN" : "DUMMY_USER_TOKEN");
             
             setSuccessAnim(true);
-            toast.success(`Logged in via Developer ${type === "admin" ? "Admin" : "Tourist"} Mode`);
+            toast.success(`Logged in via Developer ${type.charAt(0).toUpperCase() + type.slice(1)} Mode`);
 
             // Sync with backend using the mock token
             // Our backend middleware will catch the "invalid token" then apply the bypass
             // BUT we can also pass hints in headers if we want to be specific
-            const response = await axios.post("http://localhost:3000/api/auth/sync", {
-                name: type === "admin" ? "Nexus Admin" : "Demo Tourist"
+            const response = await axios.post(ENDPOINTS.SYNC, {
+                name: type === "admin" ? "Nexus Admin" : (type === "police" ? "Duty Officer" : "Demo Tourist")
             }, {
                 headers: {
                     Authorization: `Bearer ${mockToken}`
@@ -272,20 +273,27 @@ const Login = () => {
                     {/* Developer Dummy Logins */}
                     <div className="mt-8 pt-6 border-t border-slate-800 relative z-10">
                         <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest text-center mb-4">Developer Demo</p>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-3 gap-2">
                             <button
                                 onClick={() => handleDummyLogin("admin")}
-                                className="bg-slate-800/50 hover:bg-blue-900/30 border border-slate-700 hover:border-blue-500/50 text-slate-300 hover:text-blue-400 text-xs py-2 px-3 rounded-lg transition-all flex items-center justify-center gap-2"
+                                className="bg-slate-800/50 hover:bg-blue-900/30 border border-slate-700 hover:border-blue-500/50 text-slate-300 hover:text-blue-400 text-[10px] py-1.5 px-2 rounded-lg transition-all flex flex-col items-center justify-center gap-1"
                             >
                                 <Shield className="w-3 h-3" />
-                                Admin Mode
+                                Admin
+                            </button>
+                            <button
+                                onClick={() => handleDummyLogin("police")}
+                                className="bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700 hover:border-slate-500/50 text-slate-300 hover:text-white text-[10px] py-1.5 px-2 rounded-lg transition-all flex flex-col items-center justify-center gap-1"
+                            >
+                                <Map className="w-3 h-3" />
+                                Police
                             </button>
                             <button
                                 onClick={() => handleDummyLogin("user")}
-                                className="bg-slate-800/50 hover:bg-emerald-900/30 border border-slate-700 hover:border-emerald-500/50 text-slate-300 hover:text-emerald-400 text-xs py-2 px-3 rounded-lg transition-all flex items-center justify-center gap-2"
+                                className="bg-slate-800/50 hover:bg-emerald-900/30 border border-slate-700 hover:border-emerald-500/50 text-slate-300 hover:text-emerald-400 text-[10px] py-1.5 px-2 rounded-lg transition-all flex flex-col items-center justify-center gap-1"
                             >
                                 <LogIn className="w-3 h-3" />
-                                Tourist Portal
+                                Tourist
                             </button>
                         </div>
                     </div>
