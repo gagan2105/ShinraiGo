@@ -131,7 +131,9 @@ const Login = () => {
             }, role);
 
             // Redirect immediately
-            if (role === "admin" || role === "police") {
+            if (role === "admin") {
+                navigate("/admin/dashboard");
+            } else if (role === "police") {
                 navigate("/admin/police-cmd");
             } else {
                 navigate("/user/home");
@@ -270,23 +272,15 @@ const Login = () => {
                         Sign in with Google
                     </button>
 
-                    {/* Developer Dummy Logins */}
                     <div className="mt-8 pt-6 border-t border-slate-800 relative z-10">
                         <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest text-center mb-4">Developer Demo</p>
-                        <div className="grid grid-cols-3 gap-2">
+                        <div className="grid grid-cols-2 gap-4">
                             <button
                                 onClick={() => handleDummyLogin("admin")}
                                 className="bg-slate-800/50 hover:bg-blue-900/30 border border-slate-700 hover:border-blue-500/50 text-slate-300 hover:text-blue-400 text-[10px] py-1.5 px-2 rounded-lg transition-all flex flex-col items-center justify-center gap-1"
                             >
                                 <Shield className="w-3 h-3" />
                                 Admin
-                            </button>
-                            <button
-                                onClick={() => handleDummyLogin("police")}
-                                className="bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700 hover:border-slate-500/50 text-slate-300 hover:text-white text-[10px] py-1.5 px-2 rounded-lg transition-all flex flex-col items-center justify-center gap-1"
-                            >
-                                <Map className="w-3 h-3" />
-                                Police
                             </button>
                             <button
                                 onClick={() => handleDummyLogin("user")}
