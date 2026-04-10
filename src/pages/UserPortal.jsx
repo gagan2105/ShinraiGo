@@ -268,7 +268,18 @@ export default function UserPortal() {
 
                 {activeTab === 'map' && <PortalMapView key="map" />}
                 {activeTab === 'wallet' && <PortalWalletView key="wallet" userData={userData} />}
-                {activeTab === 'settings' && <PortalSettingsView key="settings" userData={userData} logout={logout} navigate={navigate} />}
+                {activeTab === 'settings' && (
+                    <PortalSettingsView 
+                        key="settings" 
+                        userData={userData} 
+                        logout={logout} 
+                        navigate={navigate} 
+                        shakeEnabled={shakeEnabled}
+                        setShakeEnabled={setShakeEnabled}
+                        acousticEnabled={acousticEnabled}
+                        setAcousticEnabled={setAcousticEnabled}
+                    />
+                )}
             </AnimatePresence>
 
             {/* Immersive Header */}
@@ -395,12 +406,111 @@ function PortalWalletView({ userData }) {
     );
 }
 
-function PortalSettingsView({ userData, logout, navigate }) {
+function PortalSettingsView({ userData, logout, navigate, shakeEnabled, setShakeEnabled, acousticEnabled, setAcousticEnabled }) {
+    const [subTab, setSubTab] = useState('list');
+    
+    if (subTab === 'personal') {
+        return (
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="h-screen pt-20 px-6">
+                <button onClick={() => setSubTab('list')} className="text-blue-500 text-xs font-bold uppercase mb-6 flex items-center"><ChevronRight className="w-4 h-4 rotate-180 mr-1" /> Back to Settings</button>
+                <h3 className="text-xl font-black uppercase mb-8 italic">Personal <span className="text-slate-500">Substrate</span></h3>
+                <div className="space-y-6">
+                    <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Neural Data Identity</p>
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center py-2 border-b border-white/5">
+                                <span className="text-xs text-slate-400">Full Name</span>
+                                <span className="text-xs font-bold text-white">{userData?.name}</span>
+                            </div>
+                            <div className="flex justify-between items-center py-2 border-b border-white/5">
+                                <span className="text-xs text-slate-400">Emergency Anchor</span>
+                                <span className="text-xs font-bold text-white">{userData?.phone}</span>
+                            </div>
+                            <div className="flex justify-between items-center py-2">
+                                <span className="text-xs text-slate-400">Blood Profile</span>
+                                <span className="text-xs font-bold text-blue-500">{userData?.bloodGroup || "O+"}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </motion.div>
+        );
+    }
+
+    if (subTab === 'alerts') {
+        return (
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="h-screen pt-20 px-6">
+                <button onClick={() => setSubTab('list')} className="text-blue-500 text-xs font-bold uppercase mb-6 flex items-center"><ChevronRight className="w-4 h-4 rotate-180 mr-1" /> Back to Settings</button>
+                <h3 className="text-xl font-black uppercase mb-8 italic">Tactical <span className="text-slate-500">Alerts</span></h3>
+                <div className="space-y-4">
+                    <div className="bg-white/5 p-6 rounded-3xl border border-white/5 flex items-center justify-between">
+                        <div>
+                            <h4 className="text-sm font-black italic">Shake-to-SOS</h4>
+                            <p className="text-[9px] text-slate-500 font-bold uppercase">Kinetic Trigger Logic</p>
+                        </div>
+                        <button 
+                            onClick={() => setShakeEnabled(!shakeEnabled)}
+                            className={`w-12 h-6 rounded-full relative transition-colors ${shakeEnabled ? 'bg-emerald-500' : 'bg-slate-800'}`}
+                        >
+                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${shakeEnabled ? 'left-7' : 'left-1'}`} />
+                        </button>
+                    </div>
+                    <div className="bg-white/5 p-6 rounded-3xl border border-white/5 flex items-center justify-between">
+                        <div>
+                            <h4 className="text-sm font-black italic">Acoustic Guard</h4>
+                            <p className="text-[9px] text-slate-500 font-bold uppercase">Micro-Sample Monitoring</p>
+                        </div>
+                        <button 
+                            onClick={() => setAcousticEnabled(!acousticEnabled)}
+                            className={`w-12 h-6 rounded-full relative transition-colors ${acousticEnabled ? 'bg-blue-500' : 'bg-slate-800'}`}
+                        >
+                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${acousticEnabled ? 'left-7' : 'left-1'}`} />
+                        </button>
+                    </div>
+                </div>
+            </motion.div>
+        );
+    }
+
+    if (subTab === 'authority') {
+        return (
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="h-screen pt-20 px-6">
+                <button onClick={() => setSubTab('list')} className="text-blue-500 text-xs font-bold uppercase mb-6 flex items-center"><ChevronRight className="w-4 h-4 rotate-180 mr-1" /> Back to Settings</button>
+                <h3 className="text-xl font-black uppercase mb-8 italic">Authority <span className="text-slate-500">Access</span></h3>
+                <div className="bg-white/5 p-6 rounded-3xl border border-white/5 text-center">
+                    <Shield className="w-12 h-12 text-blue-500 mx-auto mb-4 opacity-50" />
+                    <p className="text-sm font-black italic mb-2 tracking-tight">POLICE_LINK: ESTABLISHED</p>
+                    <p className="text-[10px] text-slate-500 max-w-xs mx-auto mb-6">Your device has a bi-directional telemetry bridge to the local SOS Command Center. Data is only accessible during an active emergency event.</p>
+                    <div className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-[10px] font-black text-emerald-500 uppercase">Status: Low Latency Connect</div>
+                </div>
+            </motion.div>
+        );
+    }
+
+    if (subTab === 'legal') {
+        return (
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="h-screen pt-20 px-6 overflow-y-auto no-scrollbar pb-32">
+                <button onClick={() => setSubTab('list')} className="text-blue-500 text-xs font-bold uppercase mb-6 flex items-center"><ChevronRight className="w-4 h-4 rotate-180 mr-1" /> Back to Settings</button>
+                <h3 className="text-xl font-black uppercase mb-8 italic">Legal & <span className="text-slate-500">Privacy</span></h3>
+                <div className="space-y-6 text-slate-400">
+                    <section>
+                        <h4 className="text-xs font-black text-white uppercase tracking-widest mb-2 italic">Neural Shield Protocol</h4>
+                        <p className="text-[11px] leading-relaxed">All data packets transmitted during an SOS event are encrypted using AES-256 standard. Private keys are rotation-based and controlled by the Tourist Command Authority.</p>
+                    </section>
+                    <section>
+                        <h4 className="text-xs font-black text-white uppercase tracking-widest mb-2 italic">Data Retention</h4>
+                        <p className="text-[11px] leading-relaxed">Safety telemetry is stored on a decentralized ledger for a period of 14 days following an incident, after which the identity markers are purged from the active substrate.</p>
+                    </section>
+                </div>
+            </motion.div>
+        );
+    }
+
     const sections = [
-        { icon: <User />, title: "Personal Substrate", desc: "Identity & KYC settings" },
-        { icon: <Bell />, title: "Tactical Alerts", desc: "Notification priority logic" },
-        { icon: <Shield />, title: "Authority Access", desc: "Police linkage permissions" },
-        { icon: <Info />, title: "Legal & Privacy", desc: "Encrypted data protocols" },
+        { icon: <User />, title: "Personal Substrate", desc: "Identity & KYC settings", id: 'personal' },
+        { icon: <Bell />, title: "Tactical Alerts", desc: "Notification priority logic", id: 'alerts' },
+        { icon: <Shield />, title: "Authority Access", desc: "Police linkage permissions", id: 'authority' },
+        { icon: <Info />, title: "Legal & Privacy", desc: "Encrypted data protocols", id: 'legal' },
     ];
 
     return (
@@ -421,7 +531,7 @@ function PortalSettingsView({ userData, logout, navigate }) {
 
             <div className="space-y-4">
                 {sections.map((item, i) => (
-                    <button key={i} className="w-full bg-white/5 border border-white/5 p-5 rounded-3xl flex items-center justify-between group active:scale-[0.98] transition-all">
+                    <button key={i} onClick={() => setSubTab(item.id)} className="w-full bg-white/5 border border-white/5 p-5 rounded-3xl flex items-center justify-between group active:scale-[0.98] transition-all">
                         <div className="flex items-center space-x-4">
                             <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-slate-500 group-hover:text-blue-500 group-hover:bg-blue-500/10 transition-all">{item.icon}</div>
                             <div className="text-left">
