@@ -13,4 +13,5 @@ export const ENDPOINTS = {
     PANIC_ALERT: `${API_BASE_URL}/api/alerts/panic`,
     DIGITAL_ID_MINT: `${API_BASE_URL}/api/digital-id/mint`,
     DIGITAL_ID_ALL: `${API_BASE_URL}/api/digital-id/all`,
+    PROFILE_UPDATE: `${API_BASE_URL}/api/auth/profile`,
 };

@@ -1,10 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
 import { AuthProvider } from "./context/AuthContext";
 import { Toaster } from "sonner";
 
 // Core Pages
+import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Onboarding from "./pages/Onboarding";
 import AuthGateway from "./components/AuthGateway";
 
 // Components
@@ -21,6 +24,8 @@ import AnomalyDetection from "./pages/AnomalyDetection";
 // User Pages
 import UserPortal from "./pages/UserPortal";
 import MobileAppSimulator from "./pages/MobileAppSimulator";
+import CompanionTracker from "./pages/CompanionTracker";
+import NotFound from "./pages/NotFound";
 
 
 function App() {
@@ -28,13 +33,16 @@ function App() {
     <BrowserRouter>
       <AuthProvider>
         <Toaster theme="dark" position="top-right" />
-        <Routes>
+        <AnimatePresence mode="wait">
+          <Routes>
           {/* Public Auth Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/onboarding" element={<Onboarding />} />
 
-          {/* Root Gateway determines where a logged in user should land first */}
-          <Route path="/" element={<AuthGateway />} />
+          {/* Root Path now takes you to the stunning Landing Page */}
+          <Route path="/" element={<Landing />} />
+          <Route path="/auth-status" element={<AuthGateway />} />
 
           {/* ================= USER ROUTES ================= */}
           <Route path="/user" element={<RoleProtectedRoute allowedRoles={["user", "admin", "police"]} />}>
@@ -58,9 +66,13 @@ function App() {
             </Route>
           </Route>
 
+          {/* ================= PUBLIC ROUTES ================= */}
+          <Route path="/track/:userId" element={<CompanionTracker />} />
+
           {/* 404 Fallback */}
-          <Route path="*" element={<div className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-400">Page Not Found</div>} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
+        </AnimatePresence>
       </AuthProvider>
     </BrowserRouter>
   );

@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
 
@@ -18,7 +18,12 @@ const app = initializeApp(firebaseConfig);
 const analytics = typeof window !== "undefined" ? getAnalytics(app) : null;
 
 // Initialize Firebase Services
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
+// Set browser persistence to LOCAL for a market-ready experience
+setPersistence(auth, browserLocalPersistence)
+  .catch((error) => console.error("Firebase Persistence Error:", error));
+
+export { auth, db, analytics };
 export default app;

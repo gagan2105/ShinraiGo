@@ -1,4 +1,5 @@
 import { Loader2 } from "lucide-react";
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 
 const LoadingSpinner = ({ text = "Loading..." }) => {

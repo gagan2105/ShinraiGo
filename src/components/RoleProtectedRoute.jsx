@@ -3,7 +3,7 @@ import { useAuth } from "../context/AuthContext";
 import LoadingSpinner from "./LoadingSpinner";
 
 const RoleProtectedRoute = ({ allowedRoles = [] }) => {
-    const { currentUser, userRole, loading } = useAuth();
+    const { currentUser, userRole, isOnboarded, loading } = useAuth();
 
     if (loading) {
         return <LoadingSpinner text="Checking permissions..." />;
@@ -28,7 +28,14 @@ const RoleProtectedRoute = ({ allowedRoles = [] }) => {
         return <Navigate to="/" replace />;
     }
 
-    // 3. Authenticated and Authorized
+    // 3. User is authorized but has not completed onboarding
+    if (userRole === "user" && !isOnboarded) {
+        // Prevent infinite loops if they're already headed to onboarding
+        // But the router handles this because onboarding isn't inside RoleProtectedRoute
+        return <Navigate to="/onboarding" replace />;
+    }
+
+    // 4. Authenticated and Authorized
     return <Outlet />;
 };
 

@@ -1,6 +1,7 @@
 import { Users, AlertCircle, Map, Activity, BellRing, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { toast } from "sonner";
+import AdvancedIntelligenceDashboard from "../components/AdvancedIntelligenceDashboard";
 
 const data = [
     { time: "00:00", tourists: 1200, alerts: 2 },
@@ -153,6 +154,8 @@ export default function Dashboard() {
                     </div>
                 </div>
             </div>
+
+            <AdvancedIntelligenceDashboard />
         </div>
     );
 }

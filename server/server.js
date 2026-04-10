@@ -124,7 +124,12 @@ app.get('/api/digital-id/all', async (req, res) => {
 });
 
 
-// Start Server
-app.listen(PORT, () => {
-    console.log(`[Safeguard Server] Running on http://localhost:${PORT}`);
-});
+// Export for Vercel Serverless
+module.exports = app;
+
+// Start Server locally if not running on Vercel
+if (!process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`[Safeguard Server] Running on http://localhost:${PORT}`);
+    });
+}

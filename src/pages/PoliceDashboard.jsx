@@ -186,6 +186,45 @@ export default function PoliceDashboard() {
                 {/* Map Interface Area */}
                 <div className="flex-1 relative w-full h-full z-10">
                     <MapComponent selectedIncident={selectedUser} />
+                    
+                    {/* Satellite Overlay Effect when user is selected */}
+                    <AnimatePresence>
+                        {selectedUser && (
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="absolute inset-0 pointer-events-none z-20 overflow-hidden"
+                            >
+                                {/* Digital Grid */}
+                                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20"></div>
+                                
+                                {/* Scanning Line */}
+                                <motion.div 
+                                    initial={{ top: '-10%' }}
+                                    animate={{ top: '110%' }}
+                                    transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+                                    className="absolute left-0 right-0 h-1 bg-brand-500/30 shadow-[0_0_15px_rgba(99,102,241,0.5)] blur-[1px]"
+                                />
+                                
+                                {/* Corner Data Widgets */}
+                                <div className="absolute top-20 right-4 space-y-2 text-right">
+                                    <div className="bg-slate-900/90 border border-slate-700/50 p-2 rounded-lg backdrop-blur-md">
+                                        <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Signal Latency</p>
+                                        <p className="text-xs font-black text-emerald-400 font-mono">24ms</p>
+                                    </div>
+                                    <div className="bg-slate-900/90 border border-slate-700/50 p-2 rounded-lg backdrop-blur-md">
+                                        <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest">Enc. Strength</p>
+                                        <p className="text-xs font-black text-blue-400 font-mono">92%</p>
+                                    </div>
+                                    <div className="bg-rose-900/90 border border-rose-700/50 p-2 rounded-lg backdrop-blur-md animate-pulse">
+                                        <p className="text-[8px] font-bold text-rose-300 uppercase tracking-widest">Tracking Lock</p>
+                                        <p className="text-xs font-black text-rose-100 font-mono">VERIFIED</p>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </div>
             </div>
 

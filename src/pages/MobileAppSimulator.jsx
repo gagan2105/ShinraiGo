@@ -1,22 +1,34 @@
-import { useState } from "react";
-import { ShieldAlert, MapPin, Navigation, Bell, Settings, AlertTriangle, ShieldCheck, QrCode as QrCodeIcon, Sliders, ChevronRight, Download, FileText, Info, LogOut, CheckCircle, Bot, Send, Mic } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { QRCodeCanvas } from "qrcode.react";
 import { ENDPOINTS } from "../lib/api";
+import { useAuth } from "../context/AuthContext";
+import axios from "axios";
+import { useEffect } from "react";
 
 export default function MobileAppSimulator() {
+    const { currentUser } = useAuth();
     const [isTracking, setIsTracking] = useState(true);
+    const [edgeAiActive, setEdgeAiActive] = useState(true);
+    const [ambientNoiseLevel, setAmbientNoiseLevel] = useState(30);
     const [panicMode, setPanicMode] = useState(false);
+    const [userData, setUserData] = useState(null);
     const [showGeofence, setShowGeofence] = useState(true);
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const idToken = await currentUser?.getIdToken();
+                const response = await axios.post(ENDPOINTS.SYNC, {}, {
+                    headers: { Authorization: `Bearer ${idToken}` }
+                });
+                if (response.data?.user) setUserData(response.data.user);
+            } catch (e) {
+                console.error("Context Sync Failed");
+            }
+        };
+        fetchUserData();
+    }, [currentUser]);
+
     const [activeTab, setActiveTab] = useState('home');
-    const [autoEFir, setAutoEFir] = useState(false);
-    const [permissionsChecked, setPermissionsChecked] = useState(false);
-    const [chatInput, setChatInput] = useState("");
-    const [messages, setMessages] = useState([
-        { id: 1, sender: 'ai', text: 'Hi John! I am your SafeTour AI Guide. How can I assist you in Darjeeling today?' },
-        { id: 2, sender: 'user', text: 'Are there any restricted areas near me?' },
-        { id: 3, sender: 'ai', text: 'Yes, you are currently 2km away from the Senchal Wildlife restricted core zone. Please stay on the designated paths.' }
-    ]);
 
     const handleSendMessage = () => {
         if (!chatInput.trim()) return;
@@ -35,26 +47,36 @@ export default function MobileAppSimulator() {
 
     const handlePanic = async () => {
         setPanicMode(true);
-
         try {
-            const response = await fetch(ENDPOINTS.PANIC_ALERT, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    user: 'John Doe',
-                    location: 'Darjeeling, West Bengal',
-                    idNumber: 'AADHAAR-8291-3311-XXXX',
-                    phone: '+91 98765 43210',
-                    bloodGroup: 'O+'
-                })
+            await axios.post(ENDPOINTS.PANIC_ALERT, {
+                user: userData?.name || currentUser?.displayName || "Prototype Traveler",
+                location: 'Darjeeling, West Bengal',
+                idNumber: userData?.firebaseUid || 'AADHAAR-SIM-NODE',
+                phone: userData?.phone || '+91 00000 00000',
+                bloodGroup: userData?.bloodGroup || 'O+'
             });
-
-            if (!response.ok) {
-                console.error("Failed to broadcast SOS to central server.");
-            }
         } catch (error) {
             console.error("SOS Network Error", error);
         }
+    };
+
+    // Audio Simulation
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    useState(() => {
+        const interval = setInterval(() => {
+            if (edgeAiActive && !panicMode) {
+                setAmbientNoiseLevel(Math.floor(Math.random() * 20) + 25);
+            }
+        }, 1200);
+        return () => clearInterval(interval);
+    }, [edgeAiActive, panicMode]);
+
+    const triggerAudioAnomaly = () => {
+        setAmbientNoiseLevel(110); // Spikes to dangerous levels
+        toast.error("Edge AI detected extreme audio anomaly! (Gunshot/Scream)");
+        setTimeout(() => {
+            handlePanic();
+        }, 800);
     };
 
     return (
@@ -157,6 +179,51 @@ export default function MobileAppSimulator() {
                                     >
                                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${isTracking ? 'translate-x-6' : 'translate-x-1'}`} />
                                     </button>
+                                </div>
+
+                                {/* Edge AI Audio Analytics */}
+                                <div className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/50 mb-6 relative overflow-hidden">
+                                     <div className="flex justify-between items-center mb-3 relative z-10">
+                                         <div className="flex items-center">
+                                            <Activity className="w-5 h-5 text-indigo-500 mr-2" />
+                                            <div>
+                                                <h4 className="text-sm font-bold text-slate-800">Edge AI Audio Sentinel</h4>
+                                                <p className="text-[10px] text-slate-500 mt-0.5">Detects screams, gunshots & crashes</p>
+                                            </div>
+                                         </div>
+                                         <button
+                                            onClick={() => setEdgeAiActive(!edgeAiActive)}
+                                            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${edgeAiActive ? 'bg-indigo-500' : 'bg-slate-300'}`}
+                                         >
+                                            <span className={`inline-block h-3 w-3 transform rounded-full bg-white transition-transform ${edgeAiActive ? 'translate-x-5' : 'translate-x-1'}`} />
+                                         </button>
+                                     </div>
+
+                                     {edgeAiActive && (
+                                         <div className="bg-slate-50 rounded-xl p-3 flex items-center justify-between border border-slate-100">
+                                            <div className="flex space-x-1 items-end h-8">
+                                                {[...Array(15)].map((_, i) => (
+                                                    <motion.div 
+                                                        key={i} 
+                                                        animate={{ height: ambientNoiseLevel > 80 ? '30px' : `${Math.max(4, Math.random() * ambientNoiseLevel)}px` }}
+                                                        transition={{ duration: 0.2 }}
+                                                        className={`w-1 rounded-sm ${ambientNoiseLevel > 80 ? 'bg-rose-500' : 'bg-indigo-400'}`}
+                                                    />
+                                                ))}
+                                            </div>
+                                            <div className="text-right">
+                                                <span className={`text-lg font-black tracking-tight ${ambientNoiseLevel > 80 ? 'text-rose-600 animate-pulse' : 'text-slate-700'}`}>{ambientNoiseLevel}</span>
+                                                <span className="text-[10px] font-bold text-slate-400 ml-1">dB</span>
+                                            </div>
+                                         </div>
+                                     )}
+
+                                     <button 
+                                        onClick={triggerAudioAnomaly}
+                                        className="w-full mt-3 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-[10px] font-bold tracking-wider uppercase rounded-lg transition-colors border border-indigo-100"
+                                     >
+                                        Simulate Threat Sound
+                                     </button>
                                 </div>
 
                                 {/* Panic Button Section */}

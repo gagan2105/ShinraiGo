@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { QrCode, Shield, MapPin, Phone, User, PlusCircle, CheckCircle2 } from "lucide-react";
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { QRCodeCanvas } from "qrcode.react";
@@ -150,7 +151,7 @@ export default function DigitalID() {
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className={`w-full max-w-sm rounded-[2rem] p-6 text-white relative overflow-hidden transition-all duration-500 ${isGenerated ? 'bg-gradient-to-br from-emerald-600 to-teal-800 shadow-xl shadow-emerald-500/20 shadow-[0_0_40px_rgba(16,185,129,0.3)]' : 'bg-gradient-to-br from-slate-900 to-indigo-950 shadow-2xl shadow-indigo-500/10'}`}
+                        className={`w-full max-w-sm rounded-4xl p-6 text-white relative overflow-hidden transition-all duration-500 ${isGenerated ? 'bg-gradient-to-br from-emerald-600 to-teal-800 shadow-xl shadow-emerald-500/20 shadow-[0_0_40px_rgba(16,185,129,0.3)]' : 'bg-gradient-to-br from-slate-900 to-indigo-950 shadow-2xl shadow-indigo-500/10'}`}
                     >
                         {/* Decals & Accents */}
                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl transform translate-x-10 -translate-y-10"></div>
@@ -223,6 +224,46 @@ export default function DigitalID() {
                             <p className="text-center text-[10px] text-white/50 mt-4 tracking-widest uppercase">{formData.id || 'ID-PENDING'}</p>
                         </div>
                     </motion.div>
+                </div>
+            </div>
+
+            {/* Blockchain Evidence Ledger */}
+            <div className="mt-12 bg-slate-900 rounded-4xl p-8 border border-slate-800 relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-5"><Shield className="w-48 h-48 text-brand-500" /></div>
+                
+                <h3 className="text-xl font-bold text-white mb-6 flex items-center relative z-10">
+                    <div className="p-2 bg-brand-500/20 rounded-lg mr-3">
+                        <Shield className="w-5 h-5 text-brand-400" />
+                    </div>
+                    Blockchain Evidence Ledger
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+                    {[
+                        { event: 'Identity Minted', hash: '0x8821...3311', timestamp: '2 mins ago', status: 'Confirmed' },
+                        { event: 'KYC Verified', hash: '0x4421...9912', timestamp: '5 mins ago', status: 'Verified' },
+                        { event: 'Contract Deployed', hash: '0x1102...8832', timestamp: '10 mins ago', status: 'Success' },
+                    ].map((log, i) => (
+                        <div key={i} className="bg-slate-800/50 border border-slate-700/50 p-5 rounded-2xl hover:bg-slate-800 transition-colors group">
+                            <div className="flex justify-between items-start mb-3">
+                                <span className={`text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded ${log.status === 'Confirmed' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-brand-500/20 text-brand-400'}`}>
+                                    {log.status}
+                                </span>
+                                <span className="text-[10px] text-slate-500 font-medium">{log.timestamp}</span>
+                            </div>
+                            <h4 className="text-sm font-bold text-slate-200 mb-2">{log.event}</h4>
+                            <div className="flex items-center text-[10px] font-mono text-slate-500 bg-black/30 p-2 rounded truncate group-hover:text-slate-300 transition-colors">
+                                Hash: {log.hash}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                
+                <div className="mt-8 pt-8 border-t border-slate-800 flex flex-col md:flex-row items-center justify-between gap-4">
+                    <p className="text-xs text-slate-500 italic">"All safety events and identity snapshots are hashed and stored on a decentralized ledger to prevent record tampering during critical investigations."</p>
+                    <button className="text-xs font-bold text-brand-400 hover:text-brand-300 flex items-center shrink-0">
+                        View on Explorer <PlusCircle className="w-3 h-3 ml-1" />
+                    </button>
                 </div>
             </div>
         </div>

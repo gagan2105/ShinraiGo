@@ -1,202 +1,428 @@
-import { useState } from "react";
-import { User, Shield, Phone, MapPin, Bell, Briefcase, FileText, Settings, Heart, AlertTriangle, UserPlus, CheckCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Shield, Bell, MapPin, ShieldAlert, Navigation, QrCode, MessageSquare, Settings, User, Heart, Info, LogOut, Loader2, Zap, Activity, ShieldCheck, ChevronRight, Share2, Camera } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { toast } from "sonner";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { QRCodeCanvas } from "qrcode.react";
+import axios from "axios";
+import { ENDPOINTS } from "../lib/api";
 
 export default function UserPortal() {
-    const [activeTab, setActiveTab] = useState("profile");
-    const [autoFiling, setAutoFiling] = useState(false);
-    const [locationShared, setLocationShared] = useState(true);
+    const { currentUser, logout } = useAuth();
+    const navigate = useNavigate();
+    const [activeTab, setActiveTab] = useState("safeguard");
+    const [panicMode, setPanicMode] = useState(false);
+    const [safetyScore, setSafetyScore] = useState(94);
+    const [loading, setLoading] = useState(true);
+    const [isEditing, setIsEditing] = useState(false);
+    const [userData, setUserData] = useState(null);
+    const [editForm, setEditForm] = useState({ name: "", profilePic: "", phone: "" });
+
+    useEffect(() => {
+        const fetchUserData = async () => {
+            try {
+                const idToken = await currentUser?.getIdToken();
+                const response = await axios.post(ENDPOINTS.SYNC, {}, {
+                    headers: { Authorization: `Bearer ${idToken}` }
+                });
+                if (response.data?.user) {
+                    setUserData(response.data.user);
+                    setEditForm({
+                        name: response.data.user.name || "",
+                        profilePic: response.data.user.profilePic || "https://i.pravatar.cc/150?img=11",
+                        phone: response.data.user.phone || ""
+                    });
+                }
+            } catch (e) {
+                console.error("Failed to fetch user context");
+            }
+            setLoading(false);
+        };
+        fetchUserData();
+    }, [currentUser]);
+
+    const handleUpdateProfile = async () => {
+        try {
+            const idToken = await currentUser?.getIdToken();
+            await axios.put(ENDPOINTS.PROFILE_UPDATE, {
+                fullName: editForm.name,
+                profilePic: editForm.profilePic,
+                phone: editForm.phone
+            }, {
+                headers: { Authorization: `Bearer ${idToken}` }
+            });
+            
+            setUserData(prev => ({ 
+                ...prev, 
+                name: editForm.name, 
+                profilePic: editForm.profilePic,
+                phone: editForm.phone
+            }));
+            
+            setIsEditing(false);
+            toast.success("Identity Matrix Updated");
+        } catch (e) {
+            toast.error("Failed to update profile");
+        }
+    };
+
+    const handlePanic = async () => {
+        setPanicMode(true);
+        toast.error("SOS EMITTED: Police Command Notified", {
+            description: "Live telemetry and audio broadcast active.",
+            duration: 10000
+        });
+
+        try {
+            await axios.post(ENDPOINTS.PANIC_ALERT, {
+                user: userData?.name || currentUser?.displayName || "Unknown User",
+                location: "Live Device Geo-Lock",
+                phone: userData?.phone || currentUser?.email || "911",
+                bloodGroup: userData?.bloodGroup || "Pending",
+                idNumber: userData?.firebaseUid || "Anonymous"
+            });
+        } catch (e) {
+            console.warn("Panic network bypass active");
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-8">
+                <div className="w-16 h-16 bg-brand-500 rounded-2xl flex items-center justify-center animate-pulse shadow-[0_0_40px_rgba(79,70,229,0.3)] border border-brand-400/30">
+                    <Shield className="w-8 h-8 text-white" />
+                </div>
+                <p className="mt-6 text-slate-500 font-bold uppercase tracking-[0.3em] text-[10px] animate-pulse">Initializing Mobile Neural Link</p>
+            </div>
+        );
+    }
 
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
-            <div>
-                <h2 className="text-2xl font-bold text-slate-900 tracking-tight">Tourist Web Portal</h2>
-                <p className="text-slate-500 text-sm mt-1">Manage your profile, emergency contacts, and security preferences.</p>
-            </div>
+        <div className="min-h-screen bg-slate-950 text-white font-sans flex flex-col relative overflow-hidden">
+            {/* Main Application Shell (Edge-to-Edge Clean) */}
+            <div className="flex-1 flex flex-col relative overflow-hidden">
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-                {/* Fixed User Profile Card */}
-                <div className="lg:col-span-1 space-y-6">
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-6 flex flex-col items-center relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-brand-400 to-indigo-500"></div>
-                        <div className="w-24 h-24 rounded-full bg-white p-1 relative z-10 mt-8 shadow-md">
-                            <img src="https://i.pravatar.cc/150?img=11" alt="Profile" className="w-full h-full rounded-full object-cover" />
-                        </div>
-                        <h3 className="text-lg font-bold text-slate-900 mt-4">John Doe</h3>
-                        <p className="text-sm text-slate-500">Tourist ID: AADHAAR-XXXX</p>
-
-                        <div className="mt-4 px-3 py-1 bg-emerald-50 border border-emerald-100 rounded-full flex items-center">
-                            <Shield className="w-4 h-4 text-emerald-500 mr-2" />
-                            <span className="text-xs font-semibold text-emerald-700">Premium Protection Active</span>
-                        </div>
-
-                        <div className="w-full mt-6 pt-6 border-t border-slate-100 space-y-3">
-                            <div className="flex items-center text-sm text-slate-600 font-medium">
-                                <Heart className="w-4 h-4 mr-3 text-rose-400" />
-                                Blood Group: O+
-                            </div>
-                            <div className="flex items-center text-sm text-slate-600 font-medium">
-                                <Phone className="w-4 h-4 mr-3 text-brand-400" />
-                                +91 98765 43210
-                            </div>
-                            <div className="flex items-center text-sm text-slate-600 font-medium">
-                                <MapPin className="w-4 h-4 mr-3 text-amber-500" />
-                                Darjeeling, West Bengal
-                            </div>
-                        </div>
+                {/* Navbar */}
+                <header className="pt-14 pb-6 px-6 flex justify-between items-center bg-slate-900/50 backdrop-blur-xl border-b border-slate-800/50 z-40">
+                    <div>
+                        <p className="text-[10px] font-black text-brand-500 uppercase tracking-widest leading-none mb-1">Shinrai Network</p>
+                        <h1 className="text-xl font-black tracking-tight italic">GUARD <span className="text-slate-500 font-medium">MOBILE</span></h1>
                     </div>
+                    <div className="flex items-center space-x-3">
+                         <div className="w-10 h-10 rounded-2xl bg-slate-800 border border-slate-700 flex items-center justify-center relative hover:bg-slate-700 transition-colors">
+                            <Bell className="w-5 h-5 text-slate-400" />
+                            <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-slate-900" />
+                         </div>
+                    </div>
+                </header>
 
-                    {/* Quick Navigation Menu */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-2">
-                        {[
-                            { id: 'profile', label: 'Personal & Contacts', icon: User },
-                            { id: 'journey', label: 'Active Journey', icon: Briefcase },
-                            { id: 'security', label: 'Security & Preferences', icon: Settings }
-                        ].map(tab => (
-                            <button
-                                key={tab.id}
-                                onClick={() => setActiveTab(tab.id)}
-                                className={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-colors ${activeTab === tab.id
-                                        ? 'bg-slate-900 text-white'
-                                        : 'text-slate-600 hover:bg-slate-50'
-                                    }`}
+                {/* Main Dynamic Content Area */}
+                <main className="flex-1 overflow-y-auto px-6 py-6 scrollbar-hide relative">
+                    <AnimatePresence mode="wait">
+                        {activeTab === "safeguard" && (
+                            <motion.div
+                                key="safe"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className="space-y-6"
                             >
-                                <tab.icon className={`w-5 h-5 mr-3 ${activeTab === tab.id ? 'text-brand-400' : 'text-slate-400'}`} />
-                                {tab.label}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Main Content Area */}
-                <div className="lg:col-span-3">
-                    {activeTab === 'profile' && (
-                        <div className="space-y-6">
-                            <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-6">
-                                <div className="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
-                                    <h3 className="text-lg font-bold text-slate-900 flex items-center">
-                                        <UserPlus className="w-5 h-5 mr-2 text-brand-500" />
-                                        Emergency Contacts
-                                    </h3>
-                                    <button className="text-sm text-brand-600 font-medium hover:text-brand-700 bg-brand-50 px-3 py-1.5 rounded-lg transition-colors">
-                                        + Add Contact
-                                    </button>
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {[
-                                        { name: 'Alice Doe', relation: 'Spouse', phone: '+91 98765 11111' },
-                                        { name: 'Robert Smith', relation: 'Brother', phone: '+91 98765 22222' }
-                                    ].map((contact, i) => (
-                                        <div key={i} className="flex items-center p-4 border border-slate-100 rounded-xl hover:shadow-sm transition-shadow">
-                                            <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center mr-3">
-                                                <User className="w-5 h-5 text-slate-500" />
-                                            </div>
-                                            <div>
-                                                <p className="text-sm font-bold text-slate-800">{contact.name}</p>
-                                                <p className="text-xs text-slate-500">{contact.relation} • {contact.phone}</p>
+                                {/* Safety Pulse Score Card */}
+                                <div className="bg-slate-800/40 rounded-[2.5rem] p-8 border border-slate-700/50 relative overflow-hidden group shadow-2xl">
+                                    <div className="absolute inset-0 bg-gradient-to-br from-brand-600/10 to-transparent opacity-50" />
+                                    
+                                    <div className="relative z-10 flex flex-col items-center">
+                                        <h3 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-6">Real-Time Safety Index</h3>
+                                        
+                                        <div className="relative w-48 h-48 flex items-center justify-center">
+                                            {/* Pulse Rings */}
+                                            <div className="absolute inset-4 rounded-full border border-emerald-500/20 animate-pulse" />
+                                            <div className="absolute inset-0 rounded-full border-2 border-emerald-500/10 animate-ping" />
+                                            
+                                            <div className="text-center">
+                                                <span className={`text-6xl font-black tracking-tighter ${panicMode ? 'text-rose-500' : 'text-emerald-500'} drop-shadow-glow`}>
+                                                    {panicMode ? '!!!' : safetyScore}
+                                                </span>
+                                                <p className="text-[10px] uppercase font-black tracking-[0.2em] text-slate-500 mt-2">Authenticated Safe</p>
                                             </div>
                                         </div>
-                                    ))}
-                                </div>
-                            </div>
 
-                            <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-6">
-                                <h3 className="text-lg font-bold text-slate-900 mb-4 border-b border-slate-100 pb-4">Medical & ID Information</h3>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                                    <div>
-                                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Verified Identity</label>
-                                        <p className="mt-1 text-sm font-medium text-slate-800 p-3 bg-slate-50 rounded-lg border border-slate-100 flex items-center">
-                                            <CheckCircle className="w-4 h-4 mr-2 text-emerald-500" />
-                                            Aadhaar / Passport Verified
-                                        </p>
-                                    </div>
-                                    <div>
-                                        <label className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Allergies / Conditions</label>
-                                        <p className="mt-1 text-sm font-medium text-slate-800 p-3 bg-slate-50 rounded-lg border border-slate-100">
-                                            None Reported
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {activeTab === 'journey' && (
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-6">
-                            <h3 className="text-lg font-bold text-slate-900 mb-6">Current Itinerary: Darjeeling Trip</h3>
-                            <div className="relative border-l-2 border-slate-100 ml-3 pl-6 space-y-8">
-                                <div className="relative">
-                                    <div className="absolute -left-[31px] bg-emerald-500 w-4 h-4 rounded-full border-4 border-emerald-100"></div>
-                                    <div>
-                                        <h4 className="text-sm font-bold text-slate-800">Arrival at Bagdogra Airport</h4>
-                                        <p className="text-xs text-slate-500 mt-1">10:00 AM • Checked In</p>
-                                    </div>
-                                </div>
-                                <div className="relative">
-                                    <div className="absolute -left-[31px] bg-brand-500 w-4 h-4 rounded-full border-4 border-brand-100"></div>
-                                    <div>
-                                        <h4 className="text-sm font-bold text-slate-800">Hotel Check-in: The Elgin</h4>
-                                        <p className="text-xs text-slate-500 mt-1">2:00 PM • Safe Zone verification completed.</p>
-                                    </div>
-                                </div>
-                                <div className="relative opacity-50">
-                                    <div className="absolute -left-[31px] bg-slate-300 w-4 h-4 rounded-full border-4 border-white"></div>
-                                    <div>
-                                        <h4 className="text-sm font-bold text-slate-800">Tiger Hill Sunrise</h4>
-                                        <p className="text-xs text-slate-500 mt-1">Tomorrow, 4:00 AM • Scheduled</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {activeTab === 'security' && (
-                        <div className="space-y-6">
-                            <div className="bg-white rounded-2xl shadow-sm border border-slate-200/60 p-6">
-                                <h3 className="text-lg font-bold text-slate-900 mb-4 border-b border-slate-100 pb-4">Tracking & Visibility</h3>
-
-                                <div className="space-y-4">
-                                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
-                                        <div>
-                                            <h4 className="text-sm font-semibold text-slate-800">Live Location Sharing</h4>
-                                            <p className="text-xs text-slate-500 mt-1">Share location with emergency contacts and authorities.</p>
+                                        <div className="mt-8 flex space-x-2">
+                                            <Badge icon={<ShieldCheck className="w-3 h-3" />} label="AES-256" color="emerald" />
+                                            <Badge icon={<Activity className="w-3 h-3" />} label="Neural Sync" color="blue" />
                                         </div>
-                                        <button
-                                            onClick={() => setLocationShared(!locationShared)}
-                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${locationShared ? 'bg-brand-500' : 'bg-slate-300'}`}
+                                    </div>
+                                </div>
+
+                                    </div>
+                                </div>
+
+                                {/* Panic Override - Tactical SOS */}
+                                <div className="pt-12 flex flex-col items-center">
+                                    <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-10 italic">Emergency SOS Override</h4>
+                                    
+                                    <motion.button
+                                        whileTap={{ scale: 0.9 }}
+                                        onClick={handlePanic}
+                                        className={`w-40 h-40 rounded-full flex flex-col items-center justify-center border-8 transition-all duration-500 relative ${panicMode 
+                                            ? 'bg-rose-600 border-rose-400 shadow-[0_0_80px_rgba(225,29,72,0.6)] animate-pulse' 
+                                            : 'bg-slate-900 border-slate-800 shadow-xl hover:border-rose-500/30 group'
+                                        }`}
+                                    >
+                                        <div className={`absolute inset-0 rounded-full bg-rose-500/5 group-hover:bg-rose-500/10 transition-colors ${panicMode ? 'hidden' : 'block'}`} />
+                                        <ShieldAlert className={`w-14 h-14 mb-1 transition-colors ${panicMode ? 'text-white' : 'text-rose-500'}`} />
+                                        <span className={`text-sm font-black uppercase tracking-widest ${panicMode ? 'text-white' : 'text-slate-400'}`}>
+                                            {panicMode ? 'Help Active' : 'Panic'}
+                                        </span>
+                                    </motion.button>
+                                    
+                                    <p className="mt-8 text-center text-xs text-slate-500 font-medium px-8 leading-relaxed">
+                                        {panicMode 
+                                            ? "Police Command has intercepted your telemetry. Emergency protocols are executing."
+                                            : "Press firmly for 2 seconds to initiate immediate authority escalation."
+                                        }
+                                    </p>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {activeTab === "wallet" && (
+                            <motion.div
+                                key="wallet"
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                className="space-y-6"
+                            >
+                                <div className="bg-gradient-to-br from-indigo-600 to-indigo-800 rounded-[2.5rem] p-8 border border-white/10 shadow-2xl relative overflow-hidden h-[500px] flex flex-col justify-between">
+                                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full blur-2xl" />
+                                    
+                                    <div>
+                                        <div className="flex justify-between items-start mb-10">
+                                            <ShieldCheck className="w-10 h-10 text-white/50" />
+                                            <div className="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full border border-white/10 flex items-center">
+                                                <Zap className="w-3 h-3 mr-1 text-amber-300" />
+                                                <span className="text-[10px] uppercase font-black text-white">Encrypted</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <h2 className="text-3xl font-black tracking-tight">{currentUser?.displayName || "John Doe"}</h2>
+                                        <p className="text-indigo-200 text-sm font-medium mt-1">Verified Tourist Identity</p>
+                                    </div>
+
+                                    <div className="flex flex-col items-center">
+                                         <div className="bg-white p-4 rounded-3xl shadow-2xl">
+                                             <QRCodeCanvas value={`SH-USER:${currentUser?.uid}`} size={160} />
+                                         </div>
+                                         <p className="mt-4 text-[10px] uppercase tracking-[0.3em] font-black text-indigo-300">Auth-ST-88192-NODE</p>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4 pt-6 border-t border-white/10">
+                                        <div className="text-center">
+                                            <p className="text-[10px] text-indigo-300 uppercase font-black tracking-widest leading-none mb-1">Blood Type</p>
+                                            <p className="text-xs font-bold text-emerald-400">{userData?.bloodGroup || "PENDING"}</p>
+                                        </div>
+                                        <div className="text-center">
+                                            <p className="text-[10px] text-indigo-300 uppercase font-black tracking-widest leading-none mb-1">Nationality</p>
+                                            <p className="text-xs font-bold text-white uppercase">{userData?.nationality || "UNSET"}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-3">
+                                     <WalletItem icon={<Camera className="w-4 h-4" />} title="E-Visa Snapshot" date="Expires in 12 days" />
+                                     <WalletItem icon={<Zap className="w-4 h-4" />} title="Health Passport" date="O+ Verified" />
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {activeTab === "profile" && (
+                            <motion.div
+                                key="profile"
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="space-y-8"
+                            >
+                                <div className="flex flex-col items-center">
+                                    <div className="w-24 h-24 rounded-[2rem] bg-slate-800 border-2 border-brand-500 p-1 flex items-center justify-center relative shadow-2xl">
+                                        <img src={userData?.profilePic || "https://i.pravatar.cc/150?img=11"} className="w-full h-full rounded-[1.8rem] object-cover" />
+                                        <div className="absolute -bottom-2 bg-brand-500 text-white text-[8px] font-black uppercase px-2 py-1 rounded-full tracking-widest border-2 border-slate-900">Premium</div>
+                                    </div>
+                                    <h3 className="mt-4 text-2xl font-black">{userData?.name || currentUser?.displayName || "John Doe"}</h3>
+                                    <p className="text-slate-500 text-xs font-medium">{currentUser?.email}</p>
+                                </div>
+
+                                <div className="bg-slate-800/30 rounded-3xl border border-slate-700/50 overflow-hidden divide-y divide-slate-700/30">
+                                    <ProfileItem 
+                                        icon={<User className="w-5 h-5" />} 
+                                        label="Identity Matrix" 
+                                        onClick={() => setIsEditing(true)}
+                                    />
+                                    <ProfileItem icon={<Shield className="w-5 h-5" />} label="Security Settings" />
+                                    <ProfileItem icon={<Info className="w-5 h-5" />} label=" Shinrai Protocol Support" />
+                                    <ProfileItem icon={<LogOut className="w-5 h-5 text-rose-500" />} label="Sign Out Access" color="text-rose-500" onClick={logout} />
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Edit Profile Overlay */}
+                    <AnimatePresence>
+                        {isEditing && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 100 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 100 }}
+                                className="absolute inset-0 z-[60] bg-slate-900 px-6 py-12 flex flex-col"
+                            >
+                                <div className="flex justify-between items-center mb-10">
+                                    <h2 className="text-2xl font-black tracking-tighter italic text-brand-500">EDIT MATRIX</h2>
+                                    <button onClick={() => setIsEditing(false)} className="text-slate-500 hover:text-white font-bold text-sm">CANCEL</button>
+                                </div>
+
+                                <div className="space-y-6 flex-1">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-2">Display Name</label>
+                                        <input 
+                                            value={editForm.name}
+                                            onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                                            className="w-full bg-slate-800/50 border border-slate-700/50 rounded-2xl p-4 text-sm font-bold focus:border-brand-500 outline-none transition-colors"
+                                            placeholder="Your name"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-2">Profile Image URL</label>
+                                        <input 
+                                            value={editForm.profilePic}
+                                            onChange={(e) => setEditForm({...editForm, profilePic: e.target.value})}
+                                            className="w-full bg-slate-800/50 border border-slate-700/50 rounded-2xl p-4 text-sm font-bold focus:border-brand-500 outline-none transition-colors"
+                                            placeholder="Image URL"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-2">Neural Link Phone</label>
+                                        <input 
+                                            value={editForm.phone}
+                                            onChange={(e) => setEditForm({...editForm, phone: e.target.value})}
+                                            className="w-full bg-slate-800/50 border border-slate-700/50 rounded-2xl p-4 text-sm font-bold focus:border-brand-500 outline-none transition-colors"
+                                            placeholder="+91..."
+                                        />
+                                    </div>
+                                    
+                                    <div className="pt-8">
+                                        <button 
+                                            onClick={handleUpdateProfile}
+                                            className="w-full bg-brand-600 hover:bg-brand-500 text-white font-black p-5 rounded-3xl shadow-[0_0_30px_rgba(79,70,229,0.3)] transition-all flex items-center justify-center space-x-2"
                                         >
-                                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${locationShared ? 'translate-x-6' : 'translate-x-1'}`} />
+                                            <ShieldCheck className="w-5 h-5" />
+                                            <span>SAVE CHANGES</span>
                                         </button>
                                     </div>
-
-                                    <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
-                                        <div>
-                                            <h4 className="text-sm font-semibold text-slate-800">Auto E-FIR Generation</h4>
-                                            <p className="text-xs text-slate-500 mt-1">Automatically file a report if emergency SOS holds for 5+ mins.</p>
-                                        </div>
-                                        <button
-                                            onClick={() => setAutoFiling(!autoFiling)}
-                                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${autoFiling ? 'bg-rose-500' : 'bg-slate-300'}`}
-                                        >
-                                            <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${autoFiling ? 'translate-x-6' : 'translate-x-1'}`} />
-                                        </button>
-                                    </div>
                                 </div>
-                            </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </main>
 
-                            <div className="bg-amber-50 rounded-2xl shadow-sm border border-amber-200/60 p-6 flex flex-col items-center text-center">
-                                <div className="bg-rose-100 p-3 rounded-full mb-3">
-                                    <AlertTriangle className="w-8 h-8 text-rose-600" />
-                                </div>
-                                <h3 className="text-lg font-bold text-slate-900">Trigger Mock SOS</h3>
-                                <p className="text-sm text-slate-600 mt-2 max-w-md">Simulate an emergency alert trigger to your emergency contacts and local authorities for drill testing.</p>
-                                <button className="mt-4 px-6 py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-xl transition-colors shadow-lg shadow-rose-500/30 w-full sm:w-auto">
-                                    Initiate Test SOS
-                                </button>
-                            </div>
-                        </div>
-                    )}
+                {/* Tactical Tab Bar */}
+                <nav className="h-24 bg-slate-900/80 backdrop-blur-2xl border-t border-slate-800 flex justify-around items-center px-10 pb-8 z-40">
+                    <TabButton 
+                        icon={<Shield className="w-6 h-6" />} 
+                        label="Home" 
+                        active={activeTab === "safeguard"} 
+                        onClick={() => setActiveTab("safeguard")} 
+                    />
+                    <TabButton 
+                        icon={<QrCode className="w-6 h-6" />} 
+                        label="IDs" 
+                        active={activeTab === "wallet"} 
+                        onClick={() => setActiveTab("wallet")} 
+                    />
+                    <TabButton 
+                        icon={<User className="w-6 h-6" />} 
+                        label="Identity" 
+                        active={activeTab === "profile"} 
+                        onClick={() => setActiveTab("profile")} 
+                    />
+                </nav>
+            </div>
+        </div>
+    );
+}
+
+function Badge({ icon, label, color }) {
+    const colors = {
+        emerald: "bg-emerald-500/10 text-emerald-500 border-emerald-500/20",
+        blue: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+    };
+    return (
+        <div className={`px-3 py-1.5 rounded-xl border flex items-center space-x-1.5 ${colors[color]}`}>
+            {icon}
+            <span className="text-[10px] font-black uppercase tracking-widest">{label}</span>
+        </div>
+    );
+}
+
+function QuickAction({ icon, title, desc, isActive, onClick }) {
+    return (
+        <div 
+            onClick={onClick}
+            className={`p-5 rounded-[2rem] border transition-all cursor-pointer ${isActive 
+            ? 'bg-emerald-500/5 border-emerald-500/20' 
+            : 'bg-slate-800/30 border-slate-700/50 hover:bg-slate-700/50'}`}
+        >
+            <div className="mb-3">{icon}</div>
+            <h5 className="text-sm font-bold tracking-tight">{title}</h5>
+            <p className="text-[10px] text-slate-500 font-medium">{desc}</p>
+        </div>
+    );
+}
+
+function WalletItem({ icon, title, date }) {
+    return (
+        <div className="p-4 bg-slate-800/30 rounded-2xl border border-slate-700/50 flex justify-between items-center group cursor-pointer hover:bg-slate-700/40">
+            <div className="flex items-center space-x-4">
+                <div className="bg-slate-700/50 p-3 rounded-xl">{icon}</div>
+                <div>
+                    <h6 className="text-sm font-bold tracking-tight">{title}</h6>
+                    <p className="text-[10px] text-slate-500 font-medium">{date}</p>
                 </div>
             </div>
+            <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-white transition-colors" />
+        </div>
+    );
+}
+
+function ProfileItem({ icon, label, color = "text-slate-300", onClick }) {
+    return (
+        <div onClick={onClick} className="p-5 flex justify-between items-center hover:bg-slate-700/20 cursor-pointer active:bg-slate-700/40 transition-colors group">
+            <div className="flex items-center space-x-4">
+                <div className="p-2 bg-slate-800/50 rounded-lg group-hover:scale-110 transition-transform">{icon}</div>
+                <span className={`text-sm font-bold tracking-tight ${color}`}>{label}</span>
+            </div>
+            <ChevronRight className="w-4 h-4 text-slate-600" />
+        </div>
+    );
+}
+
+function TabButton({ icon, label, active, onClick }) {
+    return (
+        <div 
+            onClick={onClick}
+            className={`flex flex-col items-center justify-center space-y-1 transition-all cursor-pointer relative ${active ? 'text-brand-500' : 'text-slate-500 hover:text-slate-400'}`}
+        >
+            {active && (
+                <motion.div 
+                    layoutId="activeTabIndicator"
+                    className="absolute -top-1 w-8 h-1 bg-brand-500 rounded-full" 
+                />
+            )}
+            {icon}
+            <span className="text-[9px] font-black uppercase tracking-widest">{label}</span>
         </div>
     );
 }

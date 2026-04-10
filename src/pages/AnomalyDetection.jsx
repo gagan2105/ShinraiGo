@@ -1,4 +1,5 @@
 import { Activity, AlertOctagon, Map, Clock, Target, AlertTriangle, ShieldCheck } from "lucide-react";
+// eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 
@@ -168,6 +169,58 @@ export default function AnomalyDetection() {
                                 <p className="text-xs text-slate-400 leading-relaxed">
                                     Models are continuously training on newly collected anonymized geographic and temporal records from active IoT tags and Mobile Apps.
                                 </p>
+                            </div>
+                        </div>
+                    </div>
+                    {/* Neural Behavior Graph */}
+                    <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200/60 overflow-hidden">
+                        <h3 className="text-sm font-bold text-slate-900 mb-6 flex items-center">
+                            <Activity className="w-4 h-4 mr-2 text-indigo-500" />
+                            Neural Behavior Risk Vectors
+                        </h3>
+                        
+                        <div className="relative h-40 w-full bg-slate-50 rounded-xl border border-slate-100 p-2 overflow-hidden flex items-end">
+                            <svg className="absolute inset-0 w-full h-full p-2" preserveAspectRatio="none">
+                                {/* Risk Vector Line 1 (Anomalous) */}
+                                <motion.path
+                                    d="M0 80 Q 20 20, 40 70 T 80 10 T 120 60 T 160 30 T 200 90"
+                                    fill="none"
+                                    stroke="#f43f5e"
+                                    strokeWidth="2"
+                                    initial={{ pathLength: 0, opacity: 0 }}
+                                    animate={{ pathLength: 1, opacity: 1 }}
+                                    transition={{ duration: 2, repeat: Infinity, repeatType: 'loop' }}
+                                />
+                                {/* Risk Vector Line 2 (Normal) */}
+                                <motion.path
+                                    d="M0 90 Q 30 85, 60 92 T 120 88 T 180 95 T 240 90"
+                                    fill="none"
+                                    stroke="#10b981"
+                                    strokeWidth="1.5"
+                                    strokeDasharray="4 4"
+                                    initial={{ pathLength: 0 }}
+                                    animate={{ pathLength: 1 }}
+                                    transition={{ duration: 3, repeat: Infinity }}
+                                />
+                            </svg>
+                            <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
+                                <span className="text-[8px] font-bold text-rose-500 uppercase tracking-widest flex items-center">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-rose-500 mr-1"></span> Anomalous Signal
+                                </span>
+                                <span className="text-[8px] font-bold text-emerald-500 uppercase tracking-widest flex items-center">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1"></span> Expected Baseline
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div className="mt-4 grid grid-cols-2 gap-4">
+                            <div className="text-center">
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Detection Latency</p>
+                                <p className="text-lg font-black text-slate-700">1.4s</p>
+                            </div>
+                            <div className="text-center">
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Nodes Connected</p>
+                                <p className="text-lg font-black text-slate-700">12,840</p>
                             </div>
                         </div>
                     </div>

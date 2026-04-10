@@ -13,6 +13,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
     const [currentUser, setCurrentUser] = useState(null);
     const [userRole, setUserRole] = useState(null);
+    const [isOnboarded, setIsOnboarded] = useState(true); // Default to true to prevent flickering
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -20,37 +21,26 @@ export const AuthProvider = ({ children }) => {
             setLoading(true);
 
             if (user) {
+                setCurrentUser(user); // Set immediately to unlock UI
                 try {
-                    // 1. Get the Firebase ID token for this session
                     const idToken = await user.getIdToken(true);
-
-                    // 2. Send token to our Node Backend to sync user/fetch MongoDB role
-                    // Note: We send displayName explicitly since it might not be decoded from token immediately upon signup
                     const response = await axios.post(ENDPOINTS.SYNC, {
                         name: user.displayName || user.email?.split('@')[0]
                     }, {
-                        headers: {
-                            Authorization: `Bearer ${idToken}`
-                        }
+                        headers: { Authorization: `Bearer ${idToken}` },
+                        timeout: 10000
                     });
 
-                    // 3. Set authoritative role based on backend MongoDB response
                     if (response.data && response.data.user) {
                         setUserRole(response.data.user.role);
+                        setIsOnboarded(response.data.user.isOnboarded);
                     } else {
-                        setUserRole("user"); // fallback
+                        setUserRole("user");
+                        setIsOnboarded(false);
                     }
-
-                    setCurrentUser(user);
-
                 } catch (error) {
                     console.error("Backend Auth Sync Error:", error);
-                    // Decide if you want to log them out or fallback to basic user
-                    // For security, if we can't verify with backend, we should probably sign them out:
-                    // auth.signOut();
-
-                    setUserRole(null);
-                    setCurrentUser(null);
+                    setUserRole("user"); // Fallback to basic user rather than null
                 }
             } else {
                 // IMPORTANT: Don't overwrite if it was a manual dummy login
@@ -89,6 +79,8 @@ export const AuthProvider = ({ children }) => {
     const value = {
         currentUser,
         userRole,
+        isOnboarded,
+        setIsOnboarded,
         loading,
         setManualUser,
         logout
