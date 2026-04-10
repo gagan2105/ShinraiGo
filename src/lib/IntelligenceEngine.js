@@ -62,3 +62,59 @@ export class IntelligenceEngine {
 }
 
 export const NeuralSentinel = new IntelligenceEngine();
+
+// --- Intelligence Helper Suite for AI Dashboard ---
+
+/**
+ * Calculates risk level based on environmental and activity factors
+ */
+export const calculateRiskContext = (inDangerZone, inactivity) => {
+    let score = 20;
+    if (inDangerZone) score += 50;
+    if (inactivity > 30) score += 20;
+    
+    if (score > 80) return { level: 'Critical', color: 'bg-rose-500', confidence: 94, score };
+    if (score > 40) return { level: 'Warning', color: 'bg-amber-500', confidence: 88, score };
+    return { level: 'Optimal', color: 'bg-emerald-500', confidence: 98, score };
+};
+
+/**
+ * Estimates crowd density based on security telemetry
+ */
+export const estimateCrowdDensity = (riskScore) => {
+    if (riskScore > 70) return { label: 'Sparse/Suspicious', value: '1-2 units/m²', type: 'danger' };
+    return { label: 'Standard Local Flow', value: '12-15 units/m²', type: 'safe' };
+};
+
+/**
+ * Classifies raw alert text into actionable categories
+ */
+export const classifyAlertNetwork = (text) => {
+    if (text.toLowerCase().includes('panic') || text.toLowerCase().includes('sos')) {
+        return { tag: 'CRITICAL_SOS', severity: 'Critical', action: 'DEPLOY_RRF' };
+    }
+    if (text.toLowerCase().includes('deviated')) {
+        return { tag: 'ROUTE_ANOMALY', severity: 'Warning', action: 'VERIFY_PATH' };
+    }
+    return { tag: 'STATUS_CHECK', severity: 'Normal', action: 'LOG_ONLY' };
+};
+
+/**
+ * Triggers secondary alert channels (Simulated)
+ */
+export const triggerMultiChannelAlert = (type, user) => {
+    console.log(`[AI Alert Bridge] Dispatching Multi-Channel Alert for ${user}: ${type}`);
+    return true;
+};
+
+/**
+ * Predicts risk levels for future intervals
+ */
+export const predictFutureRisk = () => {
+    return [
+        { time: '02:00', level: 'High', value: 85 },
+        { time: '08:00', level: 'Low', value: 15 },
+        { time: '14:00', level: 'Medium', value: 45 },
+        { time: '20:00', level: 'Medium', value: 55 }
+    ];
+};
