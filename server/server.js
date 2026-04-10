@@ -13,6 +13,7 @@ const DigitalId = require('./models/DigitalId');
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const adminRoutes = require('./routes/adminRoutes');
+const { evaluateThreat } = require('./ml/threatModel');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -59,6 +60,16 @@ app.post('/api/alerts/panic', async (req, res) => {
     }
 
     try {
+        // --- AI Threat Assessment Integration ---
+        // Simulating incoming environmental sensors from the mobile app (0.0 to 1.0)
+        // In production, these derive from capacitor's ambient tracking
+        const simulatedTime = new Date().getHours() / 24.0; 
+        const simulatedAudio = Math.random() > 0.5 ? 0.8 + Math.random() * 0.2 : 0.1 + Math.random() * 0.2; // Loud or quiet
+        const simulatedMotion = Math.random();
+        
+        const confidenceScore = await evaluateThreat(simulatedTime, simulatedAudio, simulatedMotion);
+        console.log(`[AI Alert Context] Time: ${simulatedTime.toFixed(2)}, Audio: ${simulatedAudio.toFixed(2)}, Motion: ${simulatedMotion.toFixed(2)} -> Threat Score: ${confidenceScore}%`);
+
         const newAlert = new PoliceFeed({
             type: 'panic',
             title: 'SOS Panic Button Activated',
@@ -67,7 +78,8 @@ app.post('/api/alerts/panic', async (req, res) => {
             time: 'Just now',
             idNumber: idNumber || 'Unknown',
             bloodGroup: bloodGroup || 'Unknown',
-            phone: phone || 'Unknown'
+            phone: phone || 'Unknown',
+            threatConfidence: confidenceScore
         });
 
         await newAlert.save();

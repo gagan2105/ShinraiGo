@@ -9,6 +9,7 @@ const policeFeedSchema = new mongoose.Schema({
     idNumber: { type: String, required: true },
     bloodGroup: { type: String, required: true },
     phone: { type: String, required: true },
+    threatConfidence: { type: Number, default: 0 },
     createdAt: { type: Date, default: Date.now }
 });
 

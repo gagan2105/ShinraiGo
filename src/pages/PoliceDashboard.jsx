@@ -104,9 +104,29 @@ export default function PoliceDashboard() {
                                             <p className="text-sm font-semibold text-rose-600 mt-1">{selectedUser.bloodGroup}</p>
                                         </div>
                                     </div>
-                                    <div>
-                                        <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Contact Number</label>
-                                        <p className="text-sm font-semibold text-slate-800 flex items-center mt-1"><Phone className="w-4 h-4 mr-1 text-slate-400" /> {selectedUser.phone}</p>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Contact Number</label>
+                                            <p className="text-sm font-semibold text-slate-800 flex items-center mt-1"><Phone className="w-4 h-4 mr-1 text-slate-400" /> {selectedUser.phone}</p>
+                                        </div>
+                                        {selectedUser.type === 'panic' && (
+                                            <div>
+                                                <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider flex items-center">
+                                                    <Shield className="w-3 h-3 mr-1" /> AI Threat Score
+                                                </label>
+                                                <div className="flex items-center mt-1">
+                                                    <div className="w-full bg-slate-200 rounded-full h-2 mr-2 relative overflow-hidden">
+                                                        <div 
+                                                            className={`h-2 rounded-full ${selectedUser.threatConfidence > 80 ? 'bg-rose-500 animate-pulse' : selectedUser.threatConfidence > 40 ? 'bg-amber-500' : 'bg-slate-500'}`} 
+                                                            style={{ width: `${selectedUser.threatConfidence || 0}%` }}
+                                                        />
+                                                    </div>
+                                                    <span className={`text-sm font-black ${selectedUser.threatConfidence > 80 ? 'text-rose-600' : 'text-slate-700'}`}>
+                                                        {selectedUser.threatConfidence || 0}%
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
 
