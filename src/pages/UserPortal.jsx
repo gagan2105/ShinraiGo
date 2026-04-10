@@ -82,18 +82,18 @@ export default function UserPortal() {
             }
 
             await axios.put(ENDPOINTS.PROFILE_UPDATE || "/api/auth/profile", {
-                fullName: editForm.name,
-                profilePic: editForm.profilePic,
-                phone: editForm.phone
+                fullName: editForm.name || userData?.name,
+                profilePic: editForm.profilePic || userData?.profilePic,
+                phone: editForm.phone || userData?.phone
             }, {
                 headers: { Authorization: `Bearer ${idToken}` }
             });
             
             const updatedUserData = { 
                 ...userData, 
-                name: editForm.name, 
-                profilePic: editForm.profilePic,
-                phone: editForm.phone
+                name: editForm.name || userData?.name, 
+                profilePic: editForm.profilePic || userData?.profilePic,
+                phone: editForm.phone || userData?.phone
             };
             
             setUserData(updatedUserData);
@@ -105,7 +105,8 @@ export default function UserPortal() {
             setIsEditing(false);
             toast.success("Identity Matrix Updated");
         } catch (e) {
-            toast.error("Failed to update profile");
+            toast.error(e.response?.data?.error || "Network error. Document size limits exceeded or connection failed.");
+            console.error("Profile Update Crash:", e);
         }
     };
 
@@ -278,8 +279,8 @@ export default function UserPortal() {
                                         onChange={(e) => {
                                             const file = e.target.files[0];
                                             if (file) {
-                                                if (file.size > 2 * 1024 * 1024) { // 2MB restriction for base64 limits
-                                                    toast.error("Image too large. Please select an image under 2MB.");
+                                                if (file.size > 15 * 1024 * 1024) { // 15MB restriction for mobile camera sizes
+                                                    toast.error("Image too large. Please select a highly compressed image under 15MB.");
                                                     return;
                                                 }
                                                 const reader = new FileReader();

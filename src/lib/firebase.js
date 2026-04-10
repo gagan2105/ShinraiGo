@@ -1,5 +1,11 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, indexedDBLocalPersistence, initializeAuth, browserLocalPersistence } from "firebase/auth";
+import { 
+  getAuth, 
+  indexedDBLocalPersistence, 
+  initializeAuth, 
+  browserLocalPersistence,
+  browserPopupRedirectResolver
+} from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
 
@@ -17,12 +23,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = typeof window !== "undefined" ? getAnalytics(app) : null;
 
-// Initialize Firebase Services with IndexedDB persistence for Capacitor
-// Fallback to browserLocalPersistence for development/web
+// Initialize Auth with clear persistence and resolver for Capacitor
 let auth;
 if (typeof window !== 'undefined') {
   auth = initializeAuth(app, {
     persistence: [indexedDBLocalPersistence, browserLocalPersistence],
+    popupRedirectResolver: browserPopupRedirectResolver
   });
 } else {
   auth = getAuth(app);

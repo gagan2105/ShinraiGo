@@ -128,7 +128,7 @@ const Login = () => {
             }
         } catch (error) {
             console.error("Google Login Error:", error);
-            toast.error(error.message || "Google Authentication failed");
+            toast.error(error.message || "Google Authentication failed. Ensure popups are allowed.");
             setLoading(false);
         }
     };

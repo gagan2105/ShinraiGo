@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, getRedirectResult } from "firebase/auth";
 import { auth } from "../lib/firebase";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
