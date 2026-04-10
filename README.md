@@ -1,123 +1,108 @@
-# 🛡️ Shinrai Go (SafeguardTour)
+# 🛡️ Shinrai Go: Advanced AI Safety Infrastructure for Global Tourism
 
-![Shinrai Go Banner](/public/shinrai_go_banner.png)
+[![GitHub license](https://img.shields.io/github/license/gagan2105/ShinraiGo?style=for-the-badge&color=brand)](https://github.com/gagan2105/ShinraiGo/blob/master/LICENSE)
+[![React](https://img.shields.io/badge/Frontend-React%2019-blue?style=for-the-badge&logo=react)](https://react.dev/)
+[![Express](https://img.shields.io/badge/Backend-Express%205-lightgrey?style=for-the-badge&logo=express)](https://expressjs.com/)
+[![MongoDB](https://img.shields.io/badge/Database-MongoDB-green?style=for-the-badge&logo=mongodb)](https://www.mongodb.com/)
+[![Firebase](https://img.shields.io/badge/Security-Firebase-orange?style=for-the-badge&logo=firebase)](https://firebase.google.com/)
 
-
-### Shaping the Future of Secure Tourism through AI & Blockchain.
-
-**Shinrai Go** is a next-generation security platform designed to protect tourists and empower local authorities. By integrating real-time location tracking, IoT-driven safety scores, and a blockchain-verified digital identity, we create a "shield of safety" around travelers.
-
----
-
-## 🌟 Key Features
-
-### 🤳 1. Tourist Mobile Experience (Simulator)
-- **Live Safety Score**: Real-time evaluation of the tourist's environment based on sensitivity, time, and crowd proximity.
-- **One-Touch SOS**: An instant panic button that broadcasts location, identity, and emergency data to the central command.
-- **AI Guide**: A conversational agent that provides safety advice, route checks, and local context.
-- **Geofencing Alerts**: Automated notifications when approaching restricted zones (e.g., wildlife core areas).
-
-### 👮 2. Central Police & Admin Command
-- **Live Incident Feed**: Real-time visualization of SOS alerts and panic reports.
-- **Anomaly Detection**: Advanced dashboard tracking irregular movements or departures from standard tourist routes.
-- **Fleet Management**: Monitor authorized tourist groups across the geological map.
-
-### 🆔 3. Blockchain Digital ID
-- **Secure Minting**: Tourists generate a "Digital DNA" ID containing KYC, itinerary details, and medical info.
-- **QR-Code Verification**: Seamless verification at checkpoints, hotels, and restricted entry points.
-- **Tamper-Proof**: Verified data ensures identity is immutable and trustworthy.
+**Shinrai Go** is a mission-critical safety platform designed to redefine the security paradigm for international travelers and local authorities. By merging real-time context-aware risk intelligence with a direct authority-intercept loop, we provide an unyielding "SafeTour" environment for every journey.
 
 ---
 
-## 🛠️ Technology Stack
+## 💎 Core Architecture & Experience
 
-### **Frontend (Vite + React)**
-- **UI Architecture:** React 19 + Vite for ultra-fast performance.
-- **Styling:** Tailwind CSS 4.0 + Framer Motion for premium, glassmorphic animations.
-- **Data & Maps:** Leaflet.js + OpenStreetMap for live geospatial tracking.
-- **Utility:** Lucide React (icons), Recharts (anomaly visualization), Sonner (notifications).
+### 🤳 1. Guard Mobile: The Immersive Tourist Interface
+*   **Neural Safety Index**: A real-time, AI-driven score analyzing environmental variables, cohort proximity, and local time-sensitivity.
+*   **Identity Matrix**: A high-fidelity profile management system that synchronizes traveler metadata (Medical, Contact, KYC) across the entire safety substrate.
+*   **Tactical SOS Override**: A zero-latency emergency trigger that initiates an immediate telemetry broadcast to central command.
+*   **Encrypted ID Wallet**: Secure minting and storage of Digital IDs, allowing for seamless verification at checkpoints through verified QR-DNA.
 
-### **Backend (Node.js + Express)**
-- **Runtime:** Node.js v18+.
-- **Database:** MongoDB (via Mongoose) for persistent alert logs and user metadata.
-- **Authentication:** Firebase Admin SDK (Token Verification) + Google Auth.
-- **Real-time:** Native REST structure for high-performance mobile-to-server alerts.
+### 👮 2. Central Command: Authority Intelligence Hub
+*   **Live Intel Feed**: A data-rich visualization of active incidents, panic reports, and anomaly alerts.
+*   **Satellite Lock Tracking**: Real-time geospatial monitoring of authorized tourist groups with automated victim identification during SOS events.
+*   **Rapid Response Dispatch**: Integrated unit management for executing immediate ground deployment based on live GPS telemetry.
+
+### 🧠 3. Advanced Anomaly Detection
+*   **Predictive Guardianship**: Edge AI logic that identifies deviations from standard transit patterns or environmental noise anomalies (Screams, Gunshots) before a manual trigger is possible.
 
 ---
 
-## 🚀 Getting Started
+## 🛠️ Technological Foundations
+
+| Layer | Technology | Role |
+| :--- | :--- | :--- |
+| **Frontend** | **React 19 + Framer Motion** | Immersive, glassmorphic UI with zero-margin edge-to-edge design. |
+| **Backend** | **Express 5 + Node.js** | High-performance API orchestration and authority-intercept logic. |
+| **Database** | **MongoDB (Mongoose)** | Decentralized-style storage for Identity Matrix and live incident logs. |
+| **Security** | **Firebase Admin + JWT** | AES-256 standard encryption for all data-in-transit and auth sessions. |
+| **Geospatial**| **Leaflet / OpenStreetMap** | Real-time tactical map nodes for command monitoring. |
+
+---
+
+## 🚀 Deployment & Local Orchestration
 
 ### 1. Prerequisites
-- **Node.js**: v18 or higher.
-- **MongoDB**: A running instance (local or Atlas).
-- **Firebase**: A project with a `serviceAccountKey.json` for the backend and client config for the frontend.
+*   **Node.js**: v20 or higher.
+*   **MongoDB**: Global Atlas instance or local daemon.
+*   **Firebase**: Project credentials (`serviceAccountKey.json`) for backend auth verification.
 
-### 2. Installation
-
-Clone and install dependencies for both layers:
-
+### 2. Rapid Installation
 ```bash
-# Root (Frontend)
+# Obtain Repository
+git clone https://github.com/gagan2105/ShinraiGo.git
+
+# Initialize Frontend Dependencies
 npm install
 
-# Server (Backend)
+# Initialize Backend Substrate
 cd server
 npm install
 ```
 
-### 3. Configuration
-
-**Frontend Setup**: Update `src/lib/firebase.js` with your Firebase client credentials.
-
-**Backend Setup**: Place `serviceAccountKey.json` in the `/server` directory and optionally create a `.env`:
+### 3. Environment Configuration
+**Backend (.env)**:
 ```env
 PORT=3000
-MONGODB_URI=your_mongodb_uri
+MONGODB_URI=your_secure_connection_string
 ```
+**Firebase**: Place your `serviceAccountKey.json` within the `/server` directory to enable authority-link protocols.
 
-### 4. Running Locally
-
-**Start the Backend:**
+### 4. Running the Ecosystem
+**Command Center (Backend):**
 ```bash
 cd server
 npm start
 ```
-
-**Start the Frontend:**
+**Guard Portal (Frontend):**
 ```bash
-# from root
+# From root
 npm run dev
 ```
-*Access the app at `http://localhost:5173`*
 
 ---
 
-## 📁 Project Structure
+## 📂 Project Substrate
 
 ```text
-├── src/                    # React Frontend
-│   ├── components/         # Reusable UI (Layouts, Auth, etc.)
-│   ├── context/            # Global Auth & State (Context API)
-│   ├── lib/                # Configs (Firebase, Axios)
-│   └── pages/              # core Views (Simulator, Dashboards, ID)
-├── server/                 # Node.js Backend
-│   ├── config/             # Firebase Admin configuration
-│   ├── models/             # Mongoose schemas (User, Feed, ID)
-│   ├── routes/             # API Endpoints
-│   └── server.js           # Server entry point
-├── public/                 # Static assets
-└── package.json            # Project manifest
+├── src/                    # Guard Mobile Frontend
+│   ├── components/         # Tactical Layouts & Core UI
+│   ├── context/            # Global Intelligence state (Auth/Data)
+│   ├── lib/                # API Bridges & Firebase Adapters
+│   └── pages/              # High-Fidelity Views (Portal, IDs, Identity)
+├── server/                 # Central Command Backend
+│   ├── models/             # Mongoose Intelligence Schemas
+│   ├── routes/             # Authority REST Endpoints
+│   └── server.js           # Neural Core entry point
+├── public/                 # Optimized Assets
+└── package.json            # Deployment Manifests
 ```
 
 ---
 
-## 🔒 Security & Privacy
-Shinrai Go prioritizes data privacy. Live location data is only shared with authorized command centers when **Live Tracking** is toggled ON or when an **SOS** is triggered. All data transmissions are secured using Firebase ID Tokens and standard encryption.
+## 🛡️ Trust & Data Strategy
+Shinrai Go operates on a **Zero-Margin** safety policy. Location and biometric metadata are only accessible to authorized Command Nodes during an active safety breach or when explicitly enabled by the traveler. Our architecture ensures that traveler privacy and authority response are never in conflict.
 
 ---
 
-## 📄 License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
-*Developed with ❤️ to make travel safer for everyone.*
+### *Developed by Shinrai Safety Labs with ❤️ to safeguard the global explorer.*
