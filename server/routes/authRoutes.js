@@ -25,11 +25,11 @@ router.post('/sync', verifyToken, async (req, res) => {
         let isNewUser = false;
 
         if (user) {
-            // Update existing user details if they changed
+            // Update existing user details if they changed, ONLY if they provided a real name
             user.firebaseUid = uid;
-            user.name = displayName;
-            // Existing users should bypass onboarding automatically
-            user.isOnboarded = true; 
+            if (displayName !== 'Unknown User' || !user.name) {
+                user.name = displayName;
+            }
             // Force admin role for the nexus email
             if (email === 'nexus@shinraigo.admin') {
                 user.role = 'admin';
@@ -59,7 +59,11 @@ router.post('/sync', verifyToken, async (req, res) => {
                 name: user.name,
                 role: user.role,
                 profilePic: user.profilePic,
-                isOnboarded: user.isOnboarded
+                isOnboarded: user.isOnboarded,
+                bloodGroup: user.bloodGroup,
+                phone: user.phone,
+                emergencyContact: user.emergencyContact,
+                nationality: user.nationality
             }
         });
 
