@@ -10,6 +10,14 @@
 
 ---
 
+## 📸 Platform Preview
+*(Screenshots showing the Neural Home, Encrypted ID, and Police Command Center)*
+| Portal Home | Encrypted ID | Police Command |
+| :---: | :---: | :---: |
+| ![Home](https://raw.githubusercontent.com/gagan2105/ShinraiGo/master/docs/portal_home.png) | ![ID](https://raw.githubusercontent.com/gagan2105/ShinraiGo/master/docs/digital_id.png) | ![Command](https://raw.githubusercontent.com/gagan2105/ShinraiGo/master/docs/command_center.png) |
+
+---
+
 ## 💎 Core Architecture & Experience
 
 ### 🤳 1. Guard Mobile: The Immersive Tourist Interface
@@ -19,12 +27,22 @@
 *   **Encrypted ID Wallet**: Secure minting and storage of Digital IDs, allowing for seamless verification at checkpoints through verified QR-DNA.
 
 ### 👮 2. Central Command: Authority Intelligence Hub
-*   **Live Intel Feed**: A data-rich visualization of active incidents, panic reports, and anomaly alerts.
-*   **Satellite Lock Tracking**: Real-time geospatial monitoring of authorized tourist groups with automated victim identification during SOS events.
-*   **Rapid Response Dispatch**: Integrated unit management for executing immediate ground deployment based on live GPS telemetry.
+*   **Live Intel Feed**: A data-rich visualization of active incidents, panic reports, and anomaly alerts using real-time polling.
+*   **Satellite Lock Tracking**: Geospatial monitoring of authorized tourist groups with automated victim identification during SOS events.
+*   **Rapid Response Dispatch**: Integrated unit management for executing immediate ground deployment based on live GPS telemetry and Medical Dossiers.
 
-### 🧠 3. Advanced Anomaly Detection
-*   **Predictive Guardianship**: Edge AI logic that identifies deviations from standard transit patterns or environmental noise anomalies (Screams, Gunshots) before a manual trigger is possible.
+### 🧠 3. Edge AI Anomaly Detection
+*   **Predictive Guardianship**: Logic that identifies deviations from standard transit patterns or environmental noise anomalies (Screams, Gunshots) before a manual trigger is possible.
+
+---
+
+## 🔄 The User Journey (Core Flow)
+
+1.  **Landing & Intelligence Briefing**: User arrives at the high-end landing page to review safety protocols.
+2.  **Neural Synchronization (Auth)**: Secure login via Firebase/Google with instant MongoDB document synchronization.
+3.  **The Identity Matrix (Onboarding)**: Mandatory profile setup capturing Blood Group, Nationality, and Emergency Contacts to build the safety dossier.
+4.  **Immersive Guardianship**: Access to the clean, edge-to-edge Guardian Portal for home monitoring and digital ID verification.
+5.  **Emergency Intercept**: Manual or AI-triggered SOS sends an authenticated data packet to Police Headquarters for immediate intervention.
 
 ---
 
@@ -60,15 +78,7 @@ cd server
 npm install
 ```
 
-### 3. Environment Configuration
-**Backend (.env)**:
-```env
-PORT=3000
-MONGODB_URI=your_secure_connection_string
-```
-**Firebase**: Place your `serviceAccountKey.json` within the `/server` directory to enable authority-link protocols.
-
-### 4. Running the Ecosystem
+### 3. Running the Ecosystem
 **Command Center (Backend):**
 ```bash
 cd server
@@ -82,26 +92,15 @@ npm run dev
 
 ---
 
-## 📂 Project Substrate
-
-```text
-├── src/                    # Guard Mobile Frontend
-│   ├── components/         # Tactical Layouts & Core UI
-│   ├── context/            # Global Intelligence state (Auth/Data)
-│   ├── lib/                # API Bridges & Firebase Adapters
-│   └── pages/              # High-Fidelity Views (Portal, IDs, Identity)
-├── server/                 # Central Command Backend
-│   ├── models/             # Mongoose Intelligence Schemas
-│   ├── routes/             # Authority REST Endpoints
-│   └── server.js           # Neural Core entry point
-├── public/                 # Optimized Assets
-└── package.json            # Deployment Manifests
-```
+## 🗺️ Roadmap & Future Vision
+- [ ] **Autonomous Drone Sync**: Link with local police drone fleets for automated aerial eyes-on-victim during SOS.
+- [ ] **Offline Satellite Mesh**: LoRaWAN integration for tracking in extreme dead-zones.
+- [ ] **Wearable Sentinel**: Integration with Apple Watch/Samsung Health for automated medical distress triggers.
 
 ---
 
 ## 🛡️ Trust & Data Strategy
-Shinrai Go operates on a **Zero-Margin** safety policy. Location and biometric metadata are only accessible to authorized Command Nodes during an active safety breach or when explicitly enabled by the traveler. Our architecture ensures that traveler privacy and authority response are never in conflict.
+Shinrai Go operates on a **Zero-Margin** safety policy. Location and biometric metadata (the "Neural Pulse") are only accessible to authorized Command Nodes during an active medical/security breach or when explicitly enabled by the traveler. 
 
 ---
 
