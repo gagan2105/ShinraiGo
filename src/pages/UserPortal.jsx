@@ -262,13 +262,14 @@ export default function UserPortal() {
                             <CommandTile icon={<Clock />} title="Shadow Timer" color="blue" onClick={() => { setArrivalTimer(600); setTimerActive(true); toast.info("Safe Arrival Timer: 10m set"); }} />
                             <CommandTile icon={<MapPin />} title="Danger Zones" color="emerald" onClick={() => setActiveTab('map')} />
                             <CommandTile icon={<QrCode />} title="Offline ID" color="indigo" onClick={() => setActiveTab('wallet')} />
-                            <CommandTile icon={<MessageSquare />} title="Neural Chat" color="amber" onClick={() => toast.info("Neural Chat: Agent 402 is standing by.")} />
+                            <CommandTile icon={<MessageSquare />} title="Neural Chat" color="amber" onClick={() => setActiveTab('chat')} />
                         </section>
                     </motion.main>
                 )}
 
                 {activeTab === 'map' && <PortalMapView key="map" />}
                 {activeTab === 'wallet' && <PortalWalletView key="wallet" userData={userData} />}
+                {activeTab === 'chat' && <PortalChatView key="chat" userData={userData} />}
                 {activeTab === 'settings' && (
                     <PortalSettingsView 
                         key="settings" 
@@ -667,6 +668,115 @@ function PortalSettingsView({ userData, setUserData, logout, navigate, shakeEnab
             </div>
 
             <p className="text-center mt-12 text-[10px] font-bold text-slate-700 uppercase tracking-widest">Shinrai Protocol V.3.0.1</p>
+        </motion.main>
+    );
+}
+function PortalChatView({ userData }) {
+    const [messages, setMessages] = useState([
+        { role: 'assistant', content: `Neural Node 402 Active. Greetings, Agent ${userData?.name?.split(' ')[0] || ''}. I am your Safety Tactical AI. How can I assist your transit today?` }
+    ]);
+    const [input, setInput] = useState('');
+    const [isTyping, setIsTyping] = useState(false);
+    const scrollRef = useRef(null);
+
+    useEffect(() => {
+        if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }, [messages]);
+
+    const handleSendMessage = async () => {
+        if (!input.trim() || isTyping) return;
+        
+        const userMessage = { role: 'user', content: input };
+        setMessages(prev => [...prev, userMessage]);
+        setInput('');
+        setIsTyping(true);
+
+        try {
+            const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
+                model: 'openai/gpt-3.5-turbo',
+                messages: [
+                    { role: 'system', content: 'You are ShinraiGo Safety AI, a tactical assistant for travelers. Provide concise, helpful safety advice, local emergency info, and travel tips. Use a professional, tech-forward tone.' },
+                    ...messages,
+                    userMessage
+                ]
+            }, {
+                headers: {
+                    'Authorization': 'Bearer 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',
+                    'Content-Type': 'application/json',
+                    'HTTP-Referer': 'https://shinraigo.vercel.app',
+                    'X-Title': 'ShinraiGo Safety'
+                }
+            });
+
+            const botMessage = response.data.choices[0].message;
+            setMessages(prev => [...prev, botMessage]);
+        } catch (e) {
+            toast.error("Bridge Connection Lost: Neural link failed");
+            setMessages(prev => [...prev, { role: 'assistant', content: "Protocol Failure. I am unable to connect to the central intelligence node. Please use manual SOS if in immediate danger." }]);
+        } finally {
+            setIsTyping(false);
+        }
+    };
+
+    return (
+        <motion.main 
+            initial={{ opacity: 0, scale: 0.95 }} 
+            animate={{ opacity: 1, scale: 1 }} 
+            className="h-screen pt-12 pb-24 px-6 flex flex-col"
+        >
+            <div className="mb-6 flex items-center justify-between">
+                <div>
+                    <h3 className="text-2xl font-black tracking-tighter uppercase italic">Neural <span className="text-amber-500">Chat</span></h3>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tactical Support Node 402</p>
+                </div>
+                <div className="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center border border-amber-500/20">
+                    <MessageSquare className="w-5 h-5 text-amber-500" />
+                </div>
+            </div>
+
+            <div 
+                ref={scrollRef}
+                className="flex-1 overflow-y-auto space-y-4 no-scrollbar pb-4"
+            >
+                {messages.map((msg, i) => (
+                    <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[85%] px-5 py-3 rounded-3xl ${
+                            msg.role === 'user' 
+                            ? 'bg-blue-600 text-white rounded-tr-none' 
+                            : 'bg-white/5 border border-white/10 text-slate-300 rounded-tl-none font-medium'
+                        }`}>
+                            <p className="text-xs leading-relaxed">{msg.content}</p>
+                        </div>
+                    </div>
+                ))}
+                {isTyping && (
+                    <div className="flex justify-start">
+                        <div className="bg-white/5 border border-white/10 px-5 py-3 rounded-3xl rounded-tl-none flex space-x-1">
+                            <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-bounce" />
+                            <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-bounce [animation-delay:0.2s]" />
+                            <div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-bounce [animation-delay:0.4s]" />
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            <div className="mt-4 relative">
+                <input 
+                    type="text" 
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
+                    placeholder="Inquire safety protocol..."
+                    className="w-full bg-slate-900 border border-white/10 rounded-2xl py-4 pl-5 pr-14 text-sm focus:ring-1 focus:ring-amber-500 focus:outline-none placeholder:text-slate-600"
+                />
+                <button 
+                    onClick={handleSendMessage}
+                    disabled={isTyping || !input.trim()}
+                    className="absolute right-2 top-2 w-10 h-10 bg-amber-600 rounded-xl flex items-center justify-center text-white active:scale-95 transition-all disabled:opacity-50"
+                >
+                    <ChevronRight className="w-5 h-5" />
+                </button>
+            </div>
         </motion.main>
     );
 }
