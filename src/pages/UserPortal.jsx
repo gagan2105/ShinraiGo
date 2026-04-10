@@ -187,7 +187,7 @@ export default function UserPortal() {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 20 }}
-                        className="h-screen pt-14 pb-24 overflow-y-auto px-5 space-y-8 no-scrollbar"
+                        className="h-screen pt-8 pb-24 overflow-y-auto px-5 space-y-8 no-scrollbar"
                     >
                         {/* Status Dashboard */}
                         <section className="pt-6">
@@ -283,21 +283,6 @@ export default function UserPortal() {
                 )}
             </AnimatePresence>
 
-            {/* Immersive Header */}
-            <div className="fixed top-0 inset-x-0 h-14 glass z-[100] safe-top px-6 flex items-center justify-between border-b-0">
-                <div className="flex items-center space-x-2" onClick={() => setActiveTab('home')}>
-                    <div className={`w-1.5 h-1.5 rounded-full ${panicMode ? 'bg-rose-500 animate-ping' : 'bg-emerald-500 animate-pulse'}`} />
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                        {panicMode ? 'SOS Broadcast Active' : 'Neural Sync: Active'}
-                    </span>
-                </div>
-                <div className="flex items-center space-x-3 text-slate-500">
-                    <Wifi className="w-3.5 h-3.5" />
-                    <Battery className="w-3.5 h-3.5" />
-                    <span className="text-[9px] font-bold">100%</span>
-                </div>
-            </div>
-
             {/* Bottom Floating Navigation */}
             <div className="fixed bottom-6 inset-x-6 h-16 glass rounded-2xl flex items-center justify-around px-2 z-[100] safe-bottom shadow-2xl border border-white/5">
                 <TabButton active={activeTab === 'home'} icon={<Activity />} onClick={() => setActiveTab('home')} />
@@ -330,7 +315,7 @@ function LoadingSkeleton() { return ( <div className="min-h-screen bg-slate-950 
 // PORTAL SUB-VIEWS
 function PortalMapView() {
     return (
-        <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-screen relative pt-14 pb-24 flex items-center justify-center">
+        <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-screen relative pt-8 pb-24 flex items-center justify-center">
             <div className="absolute inset-0 bg-slate-900 flex flex-col items-center justify-center text-center p-10">
                 <Navigation className="w-20 h-20 text-emerald-500/20 mb-6 animate-pulse" />
                 <h3 className="text-xl font-black uppercase tracking-tighter mb-2 italic">Neural Map <span className="text-emerald-500">Live</span></h3>
@@ -348,7 +333,7 @@ function PortalWalletView({ userData }) {
         <motion.main 
             initial={{ opacity: 0, scale: 0.95 }} 
             animate={{ opacity: 1, scale: 1 }} 
-            className="h-screen pt-20 pb-24 px-6 overflow-y-auto no-scrollbar"
+            className="h-screen pt-12 pb-24 px-6 overflow-y-auto no-scrollbar"
         >
             <div className="mb-8">
                 <h3 className="text-2xl font-black tracking-tighter uppercase italic">Identity <span className="text-blue-500">Matrix</span></h3>
@@ -458,7 +443,7 @@ function PortalSettingsView({ userData, setUserData, logout, navigate, shakeEnab
     
     if (subTab === 'personal') {
         return (
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="h-screen pt-20 px-6 overflow-y-auto no-scrollbar pb-32">
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="h-screen pt-12 px-6 overflow-y-auto no-scrollbar pb-32">
                 <input 
                     type="file" 
                     ref={fileInputRef} 
@@ -562,7 +547,7 @@ function PortalSettingsView({ userData, setUserData, logout, navigate, shakeEnab
 
     if (subTab === 'alerts') {
         return (
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="h-screen pt-20 px-6">
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="h-screen pt-12 px-6">
                 <button onClick={() => setSubTab('list')} className="text-blue-500 text-xs font-bold uppercase mb-6 flex items-center"><ChevronRight className="w-4 h-4 rotate-180 mr-1" /> Back to Settings</button>
                 <h3 className="text-xl font-black uppercase mb-8 italic">Tactical <span className="text-slate-500">Alerts</span></h3>
                 <div className="space-y-4">
@@ -597,7 +582,7 @@ function PortalSettingsView({ userData, setUserData, logout, navigate, shakeEnab
 
     if (subTab === 'authority') {
         return (
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="h-screen pt-20 px-6">
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="h-screen pt-12 px-6">
                 <button onClick={() => setSubTab('list')} className="text-blue-500 text-xs font-bold uppercase mb-6 flex items-center"><ChevronRight className="w-4 h-4 rotate-180 mr-1" /> Back to Settings</button>
                 <h3 className="text-xl font-black uppercase mb-8 italic">Authority <span className="text-slate-500">Access</span></h3>
                 <div className="bg-white/5 p-6 rounded-3xl border border-white/5 text-center">
@@ -612,7 +597,7 @@ function PortalSettingsView({ userData, setUserData, logout, navigate, shakeEnab
 
     if (subTab === 'legal') {
         return (
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="h-screen pt-20 px-6 overflow-y-auto no-scrollbar pb-32">
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="h-screen pt-12 px-6 overflow-y-auto no-scrollbar pb-32">
                 <button onClick={() => setSubTab('list')} className="text-blue-500 text-xs font-bold uppercase mb-6 flex items-center"><ChevronRight className="w-4 h-4 rotate-180 mr-1" /> Back to Settings</button>
                 <h3 className="text-xl font-black uppercase mb-8 italic">Legal & <span className="text-slate-500">Privacy</span></h3>
                 <div className="space-y-6 text-slate-400">
@@ -640,7 +625,7 @@ function PortalSettingsView({ userData, setUserData, logout, navigate, shakeEnab
         <motion.main 
             initial={{ opacity: 0, x: 20 }} 
             animate={{ opacity: 1, x: 0 }} 
-            className="h-screen pt-20 pb-24 px-6 overflow-y-auto no-scrollbar"
+            className="h-screen pt-12 pb-24 px-6 overflow-y-auto no-scrollbar"
         >
             <div className="mb-10 flex items-center justify-between">
                 <div>
