@@ -103,7 +103,7 @@ const Login = () => {
 
             setSuccessAnim(true);
             setTimeout(() => {
-                if (role === "admin") navigate("/admin/police-cmd");
+                if (role === "admin" || role === "police") navigate("/admin/police-cmd");
                 else navigate("/user/home");
             }, 1000);
         } catch (e) {
