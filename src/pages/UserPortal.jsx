@@ -693,26 +693,29 @@ function PortalChatView({ userData }) {
 
         try {
             const response = await axios.post('https://openrouter.ai/api/v1/chat/completions', {
-                model: 'openai/gpt-3.5-turbo',
+                model: 'google/gemini-2.0-flash-lite-preview-02-05:free',
                 messages: [
                     { role: 'system', content: 'You are ShinraiGo Safety AI, a tactical assistant for travelers. Provide concise, helpful safety advice, local emergency info, and travel tips. Use a professional, tech-forward tone.' },
-                    ...messages,
+                    ...messages.filter(m => m.role !== 'system'),
                     userMessage
                 ]
             }, {
                 headers: {
                     'Authorization': 'Bearer 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',
-                    'Content-Type': 'application/json',
-                    'HTTP-Referer': 'https://shinraigo.vercel.app',
-                    'X-Title': 'ShinraiGo Safety'
+                    'Content-Type': 'application/json'
                 }
             });
 
-            const botMessage = response.data.choices[0].message;
-            setMessages(prev => [...prev, botMessage]);
+            if (response.data?.choices?.[0]?.message) {
+                const botMessage = response.data.choices[0].message;
+                setMessages(prev => [...prev, botMessage]);
+            } else {
+                throw new Error("Invalid response format from Neural Node");
+            }
         } catch (e) {
+            console.error("Neural Link Failure:", e.response?.data || e.message);
             toast.error("Bridge Connection Lost: Neural link failed");
-            setMessages(prev => [...prev, { role: 'assistant', content: "Protocol Failure. I am unable to connect to the central intelligence node. Please use manual SOS if in immediate danger." }]);
+            setMessages(prev => [...prev, { role: 'assistant', content: "Protocol Failure. I am unable to connect to the central intelligence node. Please check your network or use manual SOS." }]);
         } finally {
             setIsTyping(false);
         }
