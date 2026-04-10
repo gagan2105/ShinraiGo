@@ -272,6 +272,7 @@ export default function UserPortal() {
                     <PortalSettingsView 
                         key="settings" 
                         userData={userData} 
+                        setUserData={setUserData}
                         logout={logout} 
                         navigate={navigate} 
                         shakeEnabled={shakeEnabled}
@@ -406,33 +407,124 @@ function PortalWalletView({ userData }) {
     );
 }
 
-function PortalSettingsView({ userData, logout, navigate, shakeEnabled, setShakeEnabled, acousticEnabled, setAcousticEnabled }) {
+function PortalSettingsView({ userData, setUserData, logout, navigate, shakeEnabled, setShakeEnabled, acousticEnabled, setAcousticEnabled }) {
     const [subTab, setSubTab] = useState('list');
+    const [isEditing, setIsEditing] = useState(false);
+    const [editForm, setEditForm] = useState({
+        name: userData?.name || '',
+        phone: userData?.phone || '',
+        bloodGroup: userData?.bloodGroup || 'O+'
+    });
+    const [saving, setSaving] = useState(false);
+
+    const handleSaveProfile = async () => {
+        setSaving(true);
+        try {
+            // Update Local State
+            const updatedUser = { ...userData, ...editForm };
+            setUserData(updatedUser);
+            
+            // Save to Local Capacitor Storage
+            await Preferences.set({ key: 'IdentityMatrix', value: JSON.stringify(updatedUser) });
+
+            // Push to Backend
+            let idToken = "DUMMY_TOKEN"; 
+            try { 
+                // This is a simplified call, in prod we'd use actual auth token
+                await axios.post(ENDPOINTS.SYNC, { ...editForm, isUpdate: true }, {
+                    headers: { Authorization: `Bearer ${idToken}` }
+                });
+            } catch(e) { console.warn("Backend sync failed, saved locally."); }
+
+            toast.success("Identity Matrix Updated");
+            setIsEditing(false);
+        } catch (e) {
+            toast.error("Bridge Error: Save failed");
+        }
+        setSaving(false);
+    };
     
     if (subTab === 'personal') {
         return (
-            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="h-screen pt-20 px-6">
-                <button onClick={() => setSubTab('list')} className="text-blue-500 text-xs font-bold uppercase mb-6 flex items-center"><ChevronRight className="w-4 h-4 rotate-180 mr-1" /> Back to Settings</button>
+            <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="h-screen pt-20 px-6 overflow-y-auto no-scrollbar pb-32">
+                <div className="flex justify-between items-center mb-6">
+                    <button onClick={() => setSubTab('list')} className="text-blue-500 text-xs font-bold uppercase flex items-center"><ChevronRight className="w-4 h-4 rotate-180 mr-1" /> Back</button>
+                    {!isEditing ? (
+                        <button onClick={() => setIsEditing(true)} className="text-emerald-500 text-xs font-bold tracking-widest uppercase">Edit Profile</button>
+                    ) : (
+                        <button onClick={() => setIsEditing(false)} className="text-rose-500 text-xs font-bold tracking-widest uppercase">Cancel</button>
+                    )}
+                </div>
+                
                 <h3 className="text-xl font-black uppercase mb-8 italic">Personal <span className="text-slate-500">Substrate</span></h3>
-                <div className="space-y-6">
-                    <div className="bg-white/5 p-6 rounded-3xl border border-white/5">
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Neural Data Identity</p>
-                        <div className="space-y-4">
-                            <div className="flex justify-between items-center py-2 border-b border-white/5">
-                                <span className="text-xs text-slate-400">Full Name</span>
-                                <span className="text-xs font-bold text-white">{userData?.name}</span>
+                
+                <div className="flex justify-center mb-8 relative">
+                    <div className="w-24 h-24 rounded-[2rem] overflow-hidden border-2 border-white/5 bg-slate-900 flex items-center justify-center">
+                        <img src={userData?.profilePic || "https://i.pravatar.cc/150?img=11"} className="w-full h-full object-cover" />
+                    </div>
+                </div>
+
+                {isEditing ? (
+                    <div className="space-y-6 animate-in fade-in duration-300">
+                        <div className="space-y-4 bg-white/5 p-6 rounded-3xl border border-white/5 shadow-2xl">
+                            <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Legal Name</label>
+                                <input 
+                                    type="text" 
+                                    value={editForm.name} 
+                                    onChange={(e) => setEditForm({...editForm, name: e.target.value})}
+                                    className="w-full bg-slate-950 border border-white/5 rounded-2xl py-3 px-4 text-sm mt-1 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                />
                             </div>
-                            <div className="flex justify-between items-center py-2 border-b border-white/5">
-                                <span className="text-xs text-slate-400">Emergency Anchor</span>
-                                <span className="text-xs font-bold text-white">{userData?.phone}</span>
+                            <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Emergency Phone</label>
+                                <input 
+                                    type="text" 
+                                    value={editForm.phone} 
+                                    onChange={(e) => setEditForm({...editForm, phone: e.target.value})}
+                                    className="w-full bg-slate-950 border border-white/5 rounded-2xl py-3 px-4 text-sm mt-1 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                />
                             </div>
-                            <div className="flex justify-between items-center py-2">
-                                <span className="text-xs text-slate-400">Blood Profile</span>
-                                <span className="text-xs font-bold text-blue-500">{userData?.bloodGroup || "O+"}</span>
+                            <div>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Blood Profile</label>
+                                <select 
+                                    value={editForm.bloodGroup} 
+                                    onChange={(e) => setEditForm({...editForm, bloodGroup: e.target.value})}
+                                    className="w-full bg-slate-950 border border-white/5 rounded-2xl py-3 px-4 text-sm mt-1 focus:ring-1 focus:ring-blue-500 focus:outline-none"
+                                >
+                                    {['A+', 'A-', 'B+', 'B-', 'O+', 'O-', 'AB+', 'AB-'].map(bg => <option key={bg} value={bg}>{bg}</option>)}
+                                </select>
+                            </div>
+                        </div>
+                        <button 
+                            onClick={handleSaveProfile}
+                            disabled={saving}
+                            className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-600/20 active:scale-95 transition-all text-xs uppercase tracking-widest"
+                        >
+                            {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : "Authorize & Sync Updates"}
+                        </button>
+                    </div>
+                ) : (
+                    <div className="space-y-6">
+                        <div className="bg-white/5 p-6 rounded-3xl border border-white/5 shadow-2xl">
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Neural Data Identity</p>
+                            <div className="space-y-4">
+                                <div className="flex justify-between items-center py-2 border-b border-white/5">
+                                    <span className="text-xs text-slate-400">Full Name</span>
+                                    <span className="text-xs font-bold text-white">{userData?.name || "Unknown User"}</span>
+                                </div>
+                                <div className="flex justify-between items-center py-2 border-b border-white/5">
+                                    <span className="text-xs text-slate-400">Emergency Anchor</span>
+                                    <span className="text-xs font-bold text-white">{userData?.phone || "Pending Link"}</span>
+                                </div>
+                                <div className="flex justify-between items-center py-2">
+                                    <span className="text-xs text-slate-400">Blood Profile</span>
+                                    <span className="text-xs font-bold text-blue-500">{userData?.bloodGroup || "O+"}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                )}
             </motion.div>
         );
     }
