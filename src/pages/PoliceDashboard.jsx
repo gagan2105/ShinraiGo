@@ -9,6 +9,7 @@ export default function PoliceDashboard() {
     const [selectedUser, setSelectedUser] = useState(null);
     const [feed, setFeed] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [activeUsers, setActiveUsers] = useState([]);
 
     useEffect(() => {
         // Fetch live feed initially
@@ -29,6 +30,24 @@ export default function PoliceDashboard() {
 
         // Setup polling every 3 seconds to simulate "Live" connection
         const interval = setInterval(fetchFeed, 3000);
+
+        // Generate Simulated "Snap Map" GPS nodes 
+        // In production, this pulls live Capacitor geolocation telemetry from MongoDB
+        const generateMockSnapMap = () => {
+            const baseLat = 27.0410;
+            const baseLng = 88.2663;
+            const users = Array.from({length: 6}, (_, i) => ({
+                id: `tourist_${i}`,
+                name: `Tourist ${String.fromCharCode(65+i)}`,
+                lat: baseLat + (Math.random() - 0.5) * 0.02,
+                lng: baseLng + (Math.random() - 0.5) * 0.02,
+                profilePic: `https://i.pravatar.cc/150?u=tourist_${i}`,
+                status: Math.random() > 0.5 ? 'Active' : 'Stationary'
+            }));
+            setActiveUsers(users);
+        };
+        generateMockSnapMap();
+
         return () => clearInterval(interval);
     }, []);
 
@@ -205,7 +224,7 @@ export default function PoliceDashboard() {
 
                 {/* Map Interface Area */}
                 <div className="flex-1 relative w-full h-full z-10">
-                    <MapComponent selectedIncident={selectedUser} />
+                    <MapComponent selectedIncident={selectedUser} activeUsers={activeUsers} />
                     
                     {/* Satellite Overlay Effect when user is selected */}
                     <AnimatePresence>

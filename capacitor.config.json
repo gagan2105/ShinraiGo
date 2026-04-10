@@ -1,0 +1,9 @@
+{
+  "appId": "com.shinraigo.app",
+  "appName": "ShinraiGo",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https",
+    "hostname": "localhost"
+  }
+}

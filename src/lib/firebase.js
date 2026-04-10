@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, setPersistence, browserLocalPersistence } from "firebase/auth";
+import { getAuth, indexedDBLocalPersistence, initializeAuth, browserLocalPersistence } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getAnalytics } from "firebase/analytics";
 
@@ -17,13 +17,18 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const analytics = typeof window !== "undefined" ? getAnalytics(app) : null;
 
-// Initialize Firebase Services
-const auth = getAuth(app);
-const db = getFirestore(app);
+// Initialize Firebase Services with IndexedDB persistence for Capacitor
+// Fallback to browserLocalPersistence for development/web
+let auth;
+if (typeof window !== 'undefined') {
+  auth = initializeAuth(app, {
+    persistence: [indexedDBLocalPersistence, browserLocalPersistence],
+  });
+} else {
+  auth = getAuth(app);
+}
 
-// Set browser persistence to LOCAL for a market-ready experience
-setPersistence(auth, browserLocalPersistence)
-  .catch((error) => console.error("Firebase Persistence Error:", error));
+const db = getFirestore(app);
 
 export { auth, db, analytics };
 export default app;

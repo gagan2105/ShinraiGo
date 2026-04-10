@@ -28,6 +28,8 @@ router.post('/sync', verifyToken, async (req, res) => {
             // Update existing user details if they changed
             user.firebaseUid = uid;
             user.name = displayName;
+            // Existing users should bypass onboarding automatically
+            user.isOnboarded = true; 
             // Force admin role for the nexus email
             if (email === 'nexus@shinraigo.admin') {
                 user.role = 'admin';
@@ -41,7 +43,8 @@ router.post('/sync', verifyToken, async (req, res) => {
                 firebaseUid: uid,
                 email: email,
                 name: displayName,
-                role: email === 'nexus@shinraigo.admin' ? 'admin' : (email === 'officer@shinraigo.police' ? 'police' : 'user')
+                role: email === 'nexus@shinraigo.admin' ? 'admin' : (email === 'officer@shinraigo.police' ? 'police' : 'user'),
+                isOnboarded: false // True new users must onboard
             });
             await user.save();
             isNewUser = true;
@@ -49,7 +52,7 @@ router.post('/sync', verifyToken, async (req, res) => {
 
         res.status(200).json({
             message: isNewUser ? 'User synced to MongoDB successfully' : 'User profile fetched',
-            isNewUser: isNewUser || !user.isOnboarded, // Treat as new if not onboarded
+            isNewUser: isNewUser, // Strictly depend on creation status to prevent onboarding loops for existing users
             user: {
                 firebaseUid: user.firebaseUid,
                 email: user.email,

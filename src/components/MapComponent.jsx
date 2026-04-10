@@ -28,6 +28,17 @@ const policeIcon = createColorIcon('gold');
 const hospitalIcon = createColorIcon('green');
 const userIcon = createColorIcon('violet'); // For real-time GPS
 
+// Snap Map style avatar icon
+const createAvatarIcon = (url, isAlert) => new L.divIcon({
+    html: `<div style="background-image: url('${url}'); background-size: cover; width: 40px; height: 40px; border-radius: 50%; border: 3px solid ${isAlert ? '#f43f5e' : '#6366f1'}; box-shadow: 0 4px 10px rgba(0,0,0,0.3);position:relative;">
+            ${isAlert ? '<div style="position:absolute; inset:-4px; border: 2px solid #f43f5e; border-radius: 50%; animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>' : ''}
+           </div>`,
+    className: 'custom-avatar-icon',
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
+    popupAnchor: [0, -20]
+});
+
 // --- Feature: Heatmap Layer ---
 function HeatmapLayer({ alertPoints }) {
     const map = useMap();
@@ -56,7 +67,7 @@ function ChangeView({ center, zoom }) {
     return null;
 }
 
-export default function MapComponent({ selectedIncident, heatmapData = [], enableSmartRouting = true }) {
+export default function MapComponent({ selectedIncident, heatmapData = [], enableSmartRouting = true, activeUsers = [] }) {
     const defaultCenter = [27.0410, 88.2663];
     const defaultZoom = 13;
 
@@ -161,6 +172,27 @@ export default function MapComponent({ selectedIncident, heatmapData = [], enabl
                             <button className="mt-2 w-full py-1 bg-emerald-50 text-emerald-600 font-bold text-xs rounded hover:bg-emerald-100 transition-colors">
                                 Navigate to Safety
                             </button>
+                        </div>
+                    </Popup>
+                </Marker>
+            ))}
+
+            {/* Snap Map: Active Users Overly */}
+            {activeUsers.map(user => (
+                <Marker 
+                    key={user.id} 
+                    position={[user.lat, user.lng]} 
+                    icon={createAvatarIcon(user.profilePic || "https://i.pravatar.cc/150?u="+user.id, false)}
+                >
+                    <Popup>
+                        <div className="font-sans text-center">
+                            <div className="flex justify-center mb-2">
+                                <img src={user.profilePic || "https://i.pravatar.cc/150?u="+user.id} alt="profile" className="w-12 h-12 rounded-full border-2 border-indigo-500" />
+                            </div>
+                            <strong className="text-slate-900 block">{user.name}</strong>
+                            <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{user.status || "Active Patrol"}</span>
+                            <br/>
+                            <span className="text-xs text-slate-400 mt-1 block">Live GPS: {user.lat.toFixed(4)}, {user.lng.toFixed(4)}</span>
                         </div>
                     </Popup>
                 </Marker>

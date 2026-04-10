@@ -39,7 +39,13 @@ export default function UserPortal() {
 
             // 2. Attempt Network Sync
             try {
-                const idToken = await currentUser?.getIdToken();
+                let idToken;
+                if (currentUser?.isDummy) {
+                    idToken = "DUMMY_USER_TOKEN";
+                } else {
+                    idToken = await currentUser?.getIdToken();
+                }
+
                 const response = await axios.post(ENDPOINTS.SYNC, {}, {
                     headers: { Authorization: `Bearer ${idToken}` }
                 });
@@ -68,7 +74,13 @@ export default function UserPortal() {
 
     const handleUpdateProfile = async () => {
         try {
-            const idToken = await currentUser?.getIdToken();
+            let idToken;
+            if (currentUser?.isDummy) {
+                idToken = "DUMMY_USER_TOKEN";
+            } else {
+                idToken = await currentUser?.getIdToken();
+            }
+
             await axios.put(ENDPOINTS.PROFILE_UPDATE || "/api/auth/profile", {
                 fullName: editForm.name,
                 profilePic: editForm.profilePic,
@@ -242,11 +254,44 @@ export default function UserPortal() {
                         <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
                         
                         <div className="flex items-center space-x-6 z-10 w-full sm:w-auto">
-                            <div className="relative group cursor-pointer w-24 h-24 shrink-0">
-                                <img src={userData?.profilePic || "https://i.pravatar.cc/150?img=11"} alt="Profile" className="w-full h-full rounded-[1.5rem] object-cover border-4 border-slate-900 shadow-xl" />
-                                <div className="absolute inset-0 bg-black/60 rounded-[1.5rem] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Camera className="w-6 h-6 text-white" />
-                                </div>
+                            <div className="relative group w-24 h-24 shrink-0">
+                                <label htmlFor={isEditing ? "profilePicUpload" : undefined} className={`w-full h-full block ${isEditing ? "cursor-pointer" : "cursor-default"}`}>
+                                    <img src={isEditing ? (editForm.profilePic || "https://i.pravatar.cc/150?img=11") : (userData?.profilePic || "https://i.pravatar.cc/150?img=11")} alt="Profile" className="w-full h-full rounded-[1.5rem] object-cover border-4 border-slate-900 shadow-xl" />
+                                    {isEditing && (
+                                        <div className="absolute inset-0 bg-black/60 rounded-[1.5rem] flex flex-col items-center justify-center transition-opacity">
+                                            <Camera className="w-6 h-6 text-white mb-1" />
+                                            <span className="text-[8px] font-bold text-white uppercase tracking-widest">Change</span>
+                                        </div>
+                                    )}
+                                    {!isEditing && (
+                                        <div className="absolute inset-0 bg-black/60 rounded-[1.5rem] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" onClick={() => setIsEditing(true)}>
+                                            <Camera className="w-6 h-6 text-white" />
+                                        </div>
+                                    )}
+                                </label>
+                                {isEditing && (
+                                    <input 
+                                        type="file" 
+                                        id="profilePicUpload" 
+                                        accept="image/*" 
+                                        className="hidden" 
+                                        onChange={(e) => {
+                                            const file = e.target.files[0];
+                                            if (file) {
+                                                if (file.size > 2 * 1024 * 1024) { // 2MB restriction for base64 limits
+                                                    toast.error("Image too large. Please select an image under 2MB.");
+                                                    return;
+                                                }
+                                                const reader = new FileReader();
+                                                reader.onloadend = () => {
+                                                    setEditForm({ ...editForm, profilePic: reader.result });
+                                                    toast.success("Image loaded. Remember to click Save Changes.");
+                                                };
+                                                reader.readAsDataURL(file);
+                                            }
+                                        }} 
+                                    />
+                                )}
                             </div>
                             
                             <div className="w-full">
