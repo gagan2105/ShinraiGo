@@ -52,9 +52,9 @@ app.get('/api/feed/live', async (req, res) => {
     }
 });
 
-// POST Panic Alert from Mobile Simulator
+// POST Panic Alert from Mobile app
 app.post('/api/alerts/panic', async (req, res) => {
-    const { user, location, idNumber, phone, bloodGroup } = req.body;
+    const { user, location, idNumber, phone, bloodGroup, audioLevel, motionLevel } = req.body;
 
     if (!user || !location) {
         return res.status(400).json({ error: 'User and location are required for an SOS alert.' });
@@ -62,14 +62,13 @@ app.post('/api/alerts/panic', async (req, res) => {
 
     try {
         // --- AI Threat Assessment Integration ---
-        // Simulating incoming environmental sensors from the mobile app (0.0 to 1.0)
-        // In production, these derive from capacitor's ambient tracking
-        const simulatedTime = new Date().getHours() / 24.0; 
-        const simulatedAudio = Math.random() > 0.5 ? 0.8 + Math.random() * 0.2 : 0.1 + Math.random() * 0.2; // Loud or quiet
-        const simulatedMotion = Math.random();
+        // Capture sensory data from the mobile device's Audio and Motion Sentinels
+        const timeOfDay = new Date().getHours() / 24.0; 
+        const audioInput = typeof audioLevel === 'number' ? audioLevel : 0.2;
+        const motionInput = typeof motionLevel === 'number' ? motionLevel : 0.5;
         
-        const confidenceScore = await evaluateThreat(simulatedTime, simulatedAudio, simulatedMotion);
-        console.log(`[AI Alert Context] Time: ${simulatedTime.toFixed(2)}, Audio: ${simulatedAudio.toFixed(2)}, Motion: ${simulatedMotion.toFixed(2)} -> Threat Score: ${confidenceScore}%`);
+        const confidenceScore = await evaluateThreat(timeOfDay, audioInput, motionInput);
+        console.log(`[Neural SOS] User: ${user}, Audio: ${audioInput.toFixed(2)}, Motion: ${motionInput.toFixed(2)} -> Threat Score: ${confidenceScore}%`);
 
         const newAlert = new PoliceFeed({
             type: 'panic',

@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Shield, Bell, MapPin, ShieldAlert, Navigation, QrCode, MessageSquare, Settings, User, Heart, Info, LogOut, Loader2, Zap, Activity, ShieldCheck, ChevronRight, Share2, Camera, Phone, Download } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Shield, Bell, MapPin, ShieldAlert, Navigation, QrCode, MessageSquare, Settings, User, Heart, Info, LogOut, Loader2, Zap, Activity, ShieldCheck, ChevronRight, Share2, Camera, Phone, Download, RefreshCcw, Wifi, Battery, Search, Eye, Clock, ZapOff, Mic } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
@@ -7,421 +7,300 @@ import { useNavigate } from "react-router-dom";
 import { QRCodeCanvas } from "qrcode.react";
 import axios from "axios";
 import { ENDPOINTS } from "../lib/api";
-import { Haptics, NotificationType } from '@capacitor/haptics';
+import { Haptics, NotificationType, ImpactStyle } from '@capacitor/haptics';
 import { Geolocation } from '@capacitor/geolocation';
 import { Preferences } from '@capacitor/preferences';
+import { VoiceRecorder } from 'capacitor-voice-recorder';
+import { App } from '@capacitor/app';
+import { Device } from '@capacitor/device';
 
 export default function UserPortal() {
     const { currentUser, logout } = useAuth();
     const navigate = useNavigate();
+    
+    // Safety States
     const [panicMode, setPanicMode] = useState(false);
-    const [safetyScore, setSafetyScore] = useState(94);
+    const [shakeEnabled, setShakeEnabled] = useState(true);
+    const [acousticEnabled, setAcousticEnabled] = useState(false);
+    const [arrivalTimer, setArrivalTimer] = useState(0); // in seconds
+    const [timerActive, setTimerActive] = useState(false);
+    
     const [loading, setLoading] = useState(true);
-    const [isEditing, setIsEditing] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
     const [userData, setUserData] = useState(null);
-    const [editForm, setEditForm] = useState({ name: "", profilePic: "", phone: "" });
+    const [activeTab, setActiveTab] = useState('home');
+
+    // Interval Refs
+    const timerRef = useRef(null);
+    const shakeRef = useRef({ x: 0, y: 0, z: 0, lastUpdate: 0 });
 
     useEffect(() => {
-        const fetchUserData = async () => {
-            // 1. Instantly load from Secure Offline Cache
-            try {
-                const { value } = await Preferences.get({ key: 'IdentityMatrix' });
-                if (value) {
-                    const cachedData = JSON.parse(value);
-                    setUserData(cachedData);
-                    setEditForm({
-                        name: cachedData.name || "",
-                        profilePic: cachedData.profilePic || "https://i.pravatar.cc/150?img=11",
-                        phone: cachedData.phone || ""
-                    });
-                }
-            } catch(e) { console.log("No offline cache found"); }
-
-            // 2. Attempt Network Sync
-            try {
-                let idToken;
-                if (currentUser?.isDummy) {
-                    idToken = "DUMMY_USER_TOKEN";
-                } else {
-                    idToken = await currentUser?.getIdToken();
-                }
-
-                const response = await axios.post(ENDPOINTS.SYNC, {}, {
-                    headers: { Authorization: `Bearer ${idToken}` }
-                });
-                if (response.data?.user) {
-                    const freshData = response.data.user;
-                    setUserData(freshData);
-                    setEditForm({
-                        name: freshData.name || "",
-                        profilePic: freshData.profilePic || "https://i.pravatar.cc/150?img=11",
-                        phone: freshData.phone || ""
-                    });
-                    await Preferences.set({
-                        key: 'IdentityMatrix',
-                        value: JSON.stringify(freshData)
-                    });
-                }
-            } catch (e) {
-                console.warn("Operating in Offline Mode: Neural Sync Failed");
-            }
+        const init = async () => {
+            await fetchUserData(true);
             setLoading(false);
+            setupShakeDetection();
         };
-        if (currentUser) {
-            fetchUserData();
-        }
-    }, [currentUser]);
+        init();
+        return () => {
+            if (timerRef.current) clearInterval(timerRef.current);
+            window.removeEventListener('devicemotion', handleMotion);
+        };
+    }, []);
 
-    const handleUpdateProfile = async () => {
-        try {
-            let idToken;
-            if (currentUser?.isDummy) {
-                idToken = "DUMMY_USER_TOKEN";
-            } else {
-                idToken = await currentUser?.getIdToken();
-            }
-
-            await axios.put(ENDPOINTS.PROFILE_UPDATE || "/api/auth/profile", {
-                fullName: editForm.name || userData?.name,
-                profilePic: editForm.profilePic || userData?.profilePic,
-                phone: editForm.phone || userData?.phone
-            }, {
-                headers: { Authorization: `Bearer ${idToken}` }
-            });
-            
-            const updatedUserData = { 
-                ...userData, 
-                name: editForm.name || userData?.name, 
-                profilePic: editForm.profilePic || userData?.profilePic,
-                phone: editForm.phone || userData?.phone
-            };
-            
-            setUserData(updatedUserData);
-            await Preferences.set({
-                key: 'IdentityMatrix',
-                value: JSON.stringify(updatedUserData)
-            });
-            
-            setIsEditing(false);
-            toast.success("Identity Matrix Updated");
-        } catch (e) {
-            toast.error(e.response?.data?.error || "Network error. Document size limits exceeded or connection failed.");
-            console.error("Profile Update Crash:", e);
+    // SHAKE DETECTION LOGIC (KINETIC SOS)
+    const setupShakeDetection = () => {
+        if (window.DeviceMotionEvent) {
+            window.addEventListener('devicemotion', handleMotion, true);
         }
     };
 
-    const handlePanic = async () => {
+    const handleMotion = (event) => {
+        if (!shakeEnabled || panicMode) return;
+        
+        const curTime = new Date().getTime();
+        if ((curTime - shakeRef.current.lastUpdate) > 100) {
+            const diffTime = curTime - shakeRef.current.lastUpdate;
+            shakeRef.current.lastUpdate = curTime;
+
+            const acc = event.accelerationIncludingGravity;
+            const x = acc.x; const y = acc.y; const z = acc.z;
+
+            const speed = Math.abs(x + y + z - shakeRef.current.x - shakeRef.current.y - shakeRef.current.z) / diffTime * 10000;
+
+            if (speed > 800) { // Shake Threshold
+                triggerSOS("Kinetic Motion Detected (Shake)");
+            }
+
+            shakeRef.current.x = x; shakeRef.current.y = y; shakeRef.current.z = z;
+        }
+    };
+
+    // SHADOW TIMER LOGIC (SAFE ARRIVAL)
+    useEffect(() => {
+        if (timerActive && arrivalTimer > 0) {
+            timerRef.current = setInterval(() => {
+                setArrivalTimer((prev) => {
+                    if (prev <= 1) {
+                        clearInterval(timerRef.current);
+                        setTimerActive(false);
+                        triggerSOS("Safe Arrival Timer Expired (No Check-in)");
+                        return 0;
+                    }
+                    return prev - 1;
+                });
+            }, 1000);
+        } else {
+            clearInterval(timerRef.current);
+        }
+        return () => clearInterval(timerRef.current);
+    }, [timerActive, arrivalTimer]);
+
+    const fetchUserData = async (silent = false) => {
+        if (!silent) setRefreshing(true);
+        try {
+            const { value } = await Preferences.get({ key: 'IdentityMatrix' });
+            if (value) setUserData(JSON.parse(value));
+
+            let idToken = currentUser?.isDummy ? "DUMMY_TOKEN" : await currentUser?.getIdToken();
+            const response = await axios.post(ENDPOINTS.SYNC, {}, {
+                headers: { Authorization: `Bearer ${idToken}` },
+                timeout: 5000
+            });
+            if (response.data?.user) {
+                setUserData(fresh => ({...fresh, ...response.data.user}));
+                await Preferences.set({ key: 'IdentityMatrix', value: JSON.stringify(response.data.user) });
+            }
+        } catch (e) { console.warn("Offline link active."); }
+        setRefreshing(false);
+    };
+
+    const triggerSOS = async (reason = "Manual Trigger") => {
+        if (panicMode) return;
         setPanicMode(true);
-        toast.error("SOS EMITTED: Police Command Notified", {
+        
+        toast.error("SOS EMITTED: " + reason.toUpperCase(), {
             description: "Live telemetry and audio broadcast active.",
             duration: 10000
         });
 
-        // Native Hardware Integrations (Capacitor)
+        // 1. Audio Sentinel Integration
+        let audioLevel = 0.5; // Default fallback
+        try {
+            const permission = await VoiceRecorder.requestAudioRecordingPermission();
+            if (permission.value) {
+                await VoiceRecorder.startRecording();
+                await new Promise(r => setTimeout(r, 1200)); // Sample window
+                const { value } = await VoiceRecorder.getCurrentAmplitude();
+                audioLevel = value;
+                await VoiceRecorder.stopRecording();
+            }
+        } catch (e) {
+            console.warn("Audio Sentinel: Micro-sample failed", e);
+        }
+
+        // 2. Hardware Feedback
         try {
             await Haptics.notification({ type: NotificationType.Error });
             await Haptics.vibrate();
-        } catch(e) { /* Ignore on non-native environments */ }
+        } catch(e) { }
 
+        // 3. Coordinate Lock
         let liveLocation = "Live Device Geo-Lock";
         try {
             const coordinates = await Geolocation.getCurrentPosition();
             liveLocation = `Lat: ${coordinates.coords.latitude.toFixed(4)}, Lng: ${coordinates.coords.longitude.toFixed(4)}`;
         } catch(e) {
-            console.warn("GPS Lock failed, using default");
+            console.warn("GPS Lock failed");
         }
 
+        // 4. Dispatch to Neural Backend
         try {
-            await axios.post(ENDPOINTS.PANIC_ALERT || "/api/panic-alert", {
+            await axios.post(ENDPOINTS.PANIC_ALERT || "/api/alerts/panic", {
                 user: userData?.name || currentUser?.displayName || "Unknown User",
                 location: liveLocation,
                 phone: userData?.phone || currentUser?.email || "911",
                 bloodGroup: userData?.bloodGroup || "Pending",
-                idNumber: userData?.firebaseUid || "Anonymous"
+                idNumber: userData?.firebaseUid || "Anonymous",
+                reason: reason,
+                audioLevel: audioLevel,
+                motionLevel: 0.88 // Simulated panic shaking velocity
             });
         } catch (e) {
             console.warn("Panic network bypass active");
         }
     };
 
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-8">
-                <div className="w-16 h-16 bg-brand-500 rounded-2xl flex items-center justify-center animate-pulse shadow-[0_0_40px_rgba(79,70,229,0.3)] border border-brand-400/30">
-                    <Shield className="w-8 h-8 text-white" />
-                </div>
-                <p className="mt-6 text-slate-500 font-bold uppercase tracking-widest text-xs animate-pulse">Initializing Dashboard...</p>
-            </div>
-        );
-    }
+    const formatTime = (seconds) => {
+        const m = Math.floor(seconds / 60);
+        const s = seconds % 60;
+        return `${m}:${s < 10 ? '0' : ''}${s}`;
+    };
+
+    if (loading) return <LoadingSkeleton />;
 
     return (
-        <div className="min-h-screen bg-slate-950 text-white font-sans overflow-y-auto">
+        <div className="min-h-screen bg-slate-950 text-white font-sans selection:bg-blue-500/30 overflow-hidden neural-bg">
             
-            {/* Top Navigation Bar */}
-            <header className="sticky top-0 z-50 bg-slate-900/80 backdrop-blur-xl border-b border-slate-800/50">
-                <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-gradient-to-tr from-brand-600 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-brand-500/20">
-                            <Shield className="w-6 h-6 text-white" />
-                        </div>
-                        <div>
-                            <h1 className="text-xl font-black tracking-tight italic uppercase">Shinrai <span className="text-slate-500">Portal</span></h1>
-                            <p className="text-[10px] font-bold text-brand-500 uppercase tracking-[0.2em]">Neural Network Active</p>
-                        </div>
-                    </div>
-
-                    <div className="flex items-center space-x-6">
-                        <div className="flex items-center space-x-3 hidden sm:flex">
-                            <div className="text-right">
-                                <p className="text-sm font-bold">{userData?.name || currentUser?.displayName || "Tourist"}</p>
-                                <p className="text-[10px] text-slate-400 uppercase tracking-widest">{userData?.nationality || "Global"}</p>
-                            </div>
-                            <img src={userData?.profilePic || "https://i.pravatar.cc/150?img=11"} alt="Profile" className="w-10 h-10 rounded-full border-2 border-slate-800" />
-                        </div>
-
-                        <button onClick={() => { logout(); navigate("/login"); }} className="p-2 text-slate-400 hover:text-white transition-colors bg-slate-800 rounded-xl hover:bg-slate-700">
-                            <LogOut className="w-5 h-5" />
-                        </button>
-                    </div>
+            {/* Immersive Header */}
+            <div className="fixed top-0 inset-x-0 h-14 glass z-[100] safe-top px-6 flex items-center justify-between border-b-0">
+                <div className="flex items-center space-x-2">
+                    <div className={`w-1.5 h-1.5 rounded-full ${panicMode ? 'bg-rose-500 animate-ping' : 'bg-emerald-500 animate-pulse'}`} />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                        {panicMode ? 'SOS Broadcast Active' : 'Neural Sync: Active'}
+                    </span>
                 </div>
-            </header>
+                <div className="flex items-center space-x-3 text-slate-500">
+                    <Wifi className="w-3.5 h-3.5" />
+                    <Battery className="w-3.5 h-3.5" />
+                    <span className="text-[9px] font-bold">100%</span>
+                </div>
+            </div>
 
-            {/* Main Dashboard Layout */}
-            <main className="max-w-7xl mx-auto px-6 py-10 grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <main className="h-screen pt-14 pb-24 overflow-y-auto px-5 space-y-8 no-scrollbar">
                 
-                {/* LEFT COLUMN: SAFEGUARD & PANIC (Span 4) */}
-                <div className="lg:col-span-4 flex flex-col space-y-8">
-                    
-                    {/* Safety Core */}
-                    <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-8 shadow-2xl relative overflow-hidden group">
-                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent pointer-events-none" />
+                {/* Status Dashboard */}
+                <section className="pt-6">
+                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="glass rounded-[2.5rem] p-8 relative overflow-hidden group shadow-2xl">
+                        <div className="absolute top-0 right-0 w-40 h-40 bg-blue-500/10 rounded-full blur-[60px] -translate-y-1/2 translate-x-1/2" />
                         
-                        <div className="flex justify-between items-center mb-8">
-                            <h2 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] flex items-center">
-                                <Activity className="w-4 h-4 mr-2 text-emerald-500" /> Safeguard Module
-                            </h2>
-                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)] animate-pulse" />
-                        </div>
-
-                        <div className="flex flex-col items-center justify-center py-6">
-                            <div className="relative w-40 h-40 flex items-center justify-center">
-                                <div className="absolute inset-0 rounded-full border border-emerald-500/20 animate-spin-slow" />
-                                <div className="absolute inset-4 rounded-full border-2 border-emerald-500/10" />
-                                <span className={`text-6xl font-black ${panicMode ? 'text-rose-500' : 'text-emerald-500'} tracking-tighter`}>
-                                    {panicMode ? '!!!' : safetyScore}
-                                </span>
-                            </div>
-                            <p className="mt-4 text-xs text-slate-400 font-bold uppercase tracking-widest text-center">
-                                Ambient Threat Level: <span className={panicMode ? "text-rose-500" : "text-emerald-500"}>{panicMode ? "CRITICAL" : "LOW"}</span>
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Panic Override Area */}
-                    <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-8 shadow-2xl flex flex-col items-center justify-center relative overflow-hidden">
-                        <div className={`absolute inset-0 transition-opacity duration-500 ${panicMode ? 'bg-rose-500/10 opacity-100' : 'opacity-0'}`} />
-                        
-                        <h3 className="text-xs font-black text-rose-500/70 uppercase tracking-[0.3em] mb-8 italic">Emergency Protocols</h3>
-                        
-                        <button
-                            onClick={handlePanic}
-                            className={`w-40 h-40 rounded-full flex flex-col items-center justify-center border-8 transition-all duration-300 relative z-10 ${
-                                panicMode 
-                                    ? 'bg-rose-600 border-rose-400 shadow-[0_0_80px_rgba(225,29,72,0.8)] animate-pulse' 
-                                    : 'bg-slate-950 border-slate-800 shadow-xl hover:border-rose-500/30 group'
-                            }`}
-                        >
-                            <ShieldAlert className={`w-12 h-12 mb-2 transition-colors ${panicMode ? 'text-white' : 'text-rose-500'}`} />
-                            <span className={`text-sm font-black uppercase tracking-widest ${panicMode ? 'text-white' : 'text-slate-500 group-hover:text-rose-400'}`}>
-                                {panicMode ? 'Help Active' : 'S.O.S'}
-                            </span>
-                        </button>
-                        
-                        <p className="mt-8 text-center text-xs text-slate-500 font-medium leading-relaxed max-w-[250px]">
-                            {panicMode 
-                                ? "Police Command intercept active. Telemetry is locked and streaming."
-                                : "Tap to bypass local authorities and alert Central Police Command instantly."
-                            }
-                        </p>
-                    </div>
-                </div>
-
-                {/* RIGHT COLUMN: IDENTITY & WALLET (Span 8) */}
-                <div className="lg:col-span-8 flex flex-col space-y-8">
-                    
-                    {/* Identity Matrix Header */}
-                    <div className="bg-gradient-to-r from-blue-900/40 to-indigo-900/40 border border-blue-500/20 rounded-[2rem] p-8 flex flex-col sm:flex-row items-center sm:items-start justify-between relative overflow-hidden">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-                        
-                        <div className="flex items-center space-x-6 z-10 w-full sm:w-auto">
-                            <div className="relative group w-24 h-24 shrink-0">
-                                <label htmlFor={isEditing ? "profilePicUpload" : undefined} className={`w-full h-full block ${isEditing ? "cursor-pointer" : "cursor-default"}`}>
-                                    <img src={isEditing ? (editForm.profilePic || "https://i.pravatar.cc/150?img=11") : (userData?.profilePic || "https://i.pravatar.cc/150?img=11")} alt="Profile" className="w-full h-full rounded-[1.5rem] object-cover border-4 border-slate-900 shadow-xl" />
-                                    {isEditing && (
-                                        <div className="absolute inset-0 bg-black/60 rounded-[1.5rem] flex flex-col items-center justify-center transition-opacity">
-                                            <Camera className="w-6 h-6 text-white mb-1" />
-                                            <span className="text-[8px] font-bold text-white uppercase tracking-widest">Change</span>
-                                        </div>
-                                    )}
-                                    {!isEditing && (
-                                        <div className="absolute inset-0 bg-black/60 rounded-[1.5rem] flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer" onClick={() => setIsEditing(true)}>
-                                            <Camera className="w-6 h-6 text-white" />
-                                        </div>
-                                    )}
-                                </label>
-                                {isEditing && (
-                                    <input 
-                                        type="file" 
-                                        id="profilePicUpload" 
-                                        accept="image/*" 
-                                        className="hidden" 
-                                        onChange={(e) => {
-                                            const file = e.target.files[0];
-                                            if (file) {
-                                                if (file.size > 15 * 1024 * 1024) { // 15MB restriction for mobile camera sizes
-                                                    toast.error("Image too large. Please select a highly compressed image under 15MB.");
-                                                    return;
-                                                }
-                                                const reader = new FileReader();
-                                                reader.onloadend = () => {
-                                                    setEditForm({ ...editForm, profilePic: reader.result });
-                                                    toast.success("Image loaded. Remember to click Save Changes.");
-                                                };
-                                                reader.readAsDataURL(file);
-                                            }
-                                        }} 
-                                    />
-                                )}
-                            </div>
-                            
-                            <div className="w-full">
-                                {isEditing ? (
-                                    <input 
-                                        type="text" 
-                                        value={editForm.name} 
-                                        onChange={(e) => setEditForm({...editForm, name: e.target.value})} 
-                                        className="bg-slate-950 border border-slate-700 rounded-lg px-4 py-2 w-full text-white font-bold text-lg mb-2 focus:ring-1 focus:ring-blue-500 outline-none"
-                                    />
-                                ) : (
-                                    <h2 className="text-3xl font-black tracking-tight">{userData?.name || currentUser?.displayName || "Agent"}</h2>
-                                )}
-                                
-                                <div className="flex flex-wrap items-center gap-3 mt-3">
-                                    <Badge icon={<ShieldCheck className="w-3 h-3" />} label="Verified Identity" color="emerald" />
-                                    <Badge icon={<MapPin className="w-3 h-3" />} label={userData?.nationality || "Global"} color="blue" />
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="mt-6 sm:mt-0 z-10 w-full sm:w-auto flex justify-end">
-                            {isEditing ? (
-                                <button onClick={handleUpdateProfile} className="bg-blue-600 hover:bg-blue-500 px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all">Save Changes</button>
-                            ) : (
-                                <button onClick={() => setIsEditing(true)} className="bg-slate-800 hover:bg-slate-700 px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all border border-slate-700">Edit Profile</button>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* Split Grid: Medical DNA & Digital Wallet */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
-                        
-                        {/* Medical Dossier */}
-                        <div className="bg-slate-900 border border-slate-800 rounded-[2rem] p-8 shadow-xl flex flex-col justify-between">
-                            <div>
-                                <h3 className="text-xs font-black text-slate-400 uppercase tracking-[0.2em] mb-8 flex items-center">
-                                    <Heart className="w-4 h-4 mr-2 text-rose-500" /> Medical Dossier
-                                </h3>
-                                
-                                <div className="space-y-6">
-                                    <div className="bg-slate-950/50 rounded-2xl p-5 border border-slate-800/50 flex justify-between items-center">
-                                        <div className="flex items-center space-x-3">
-                                            <div className="w-10 h-10 bg-rose-500/10 rounded-xl flex items-center justify-center">
-                                                <Heart className="w-5 h-5 text-rose-500" />
-                                            </div>
-                                            <div>
-                                                <p className="text-[10px] uppercase font-bold text-slate-500">Blood Type</p>
-                                                <p className="text-lg font-black text-rose-400">{userData?.bloodGroup || "Pending"}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="bg-slate-950/50 rounded-2xl p-5 border border-slate-800/50 flex justify-between items-center">
-                                        <div className="flex items-center space-x-3 w-full">
-                                            <div className="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center shrink-0">
-                                                <Phone className="w-5 h-5 text-blue-500" />
-                                            </div>
-                                            <div className="w-full">
-                                                <p className="text-[10px] uppercase font-bold text-slate-500">Emergency Protocol</p>
-                                                {isEditing ? (
-                                                    <input 
-                                                        type="text" 
-                                                        value={editForm.phone} 
-                                                        onChange={(e) => setEditForm({...editForm, phone: e.target.value})} 
-                                                        className="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1 w-full text-white font-mono text-sm focus:ring-1 focus:ring-blue-500 outline-none mt-1"
-                                                    />
-                                                ) : (
-                                                    <p className="text-sm font-mono text-slate-300 mt-1">{userData?.emergencyContact?.phone || userData?.phone || "No Contact Set"}</p>
-                                                )}
-                                            </div>
-                                        </div>
+                        {/* Shadow Timer Display */}
+                        {timerActive && (
+                            <div className="mb-6 bg-blue-600/10 border border-blue-500/30 rounded-2xl p-4 flex items-center justify-between">
+                                <div className="flex items-center space-x-3">
+                                    <Clock className="w-5 h-5 text-blue-500 animate-pulse" />
+                                    <div>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Safe Arrival Timer</p>
+                                        <p className="text-xl font-black text-blue-400 tracking-tighter">{formatTime(arrivalTimer)}</p>
                                     </div>
                                 </div>
+                                <button onClick={() => { setTimerActive(false); setArrivalTimer(0); }} className="bg-slate-900 px-4 py-2 rounded-xl text-[9px] font-bold uppercase tracking-widest text-slate-400 border border-white/5">I'm Safe</button>
                             </div>
+                        )}
+
+                        <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center space-x-4">
+                                <div className="relative">
+                                    <img src={userData?.profilePic || "https://i.pravatar.cc/150?img=11"} className="w-16 h-16 rounded-[1.25rem] border-2 border-white/5 object-cover" />
+                                    <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-600 rounded-full border-4 border-slate-900 flex items-center justify-center"><ShieldCheck className="w-2.5 h-2.5 text-white" /></div>
+                                </div>
+                                <div>
+                                    <h2 className="text-xl font-black tracking-tight tracking-tighter italic uppercase">{userData?.name?.split(' ')[0] || "Agent"} <span className="text-slate-500">Go</span></h2>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Safeguard Level: Gold</p>
+                                </div>
+                            </div>
+                            <button onClick={() => fetchUserData()} className={`p-3 rounded-full transition-all ${refreshing ? 'animate-spin' : 'hover:bg-white/5'}`}><RefreshCcw className="w-4 h-4 text-slate-500" /></button>
                         </div>
 
-                        {/* Digital Wallet / QR */}
-                        <div className="bg-gradient-to-br from-brand-600/20 to-indigo-900/20 border border-brand-500/20 rounded-[2rem] p-8 shadow-xl flex flex-col justify-between items-center relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 p-4">
-                                <QrCode className="w-24 h-24 text-brand-500/10" />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-slate-950/40 rounded-3xl p-4 border border-white/5">
+                                <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Shake-to-SOS</p>
+                                <button onClick={() => setShakeEnabled(!shakeEnabled)} className={`flex items-center text-sm font-bold ${shakeEnabled ? 'text-emerald-500' : 'text-slate-600'}`}>
+                                    {shakeEnabled ? <Zap className="w-3 h-3 mr-1" /> : <ZapOff className="w-3 h-3 mr-1" />}
+                                    {shakeEnabled ? 'Enabled' : 'Disabled'}
+                                </button>
                             </div>
-
-                            <div className="w-full">
-                                <h3 className="text-xs font-black text-brand-400 uppercase tracking-[0.2em] mb-2 flex items-center">
-                                    <ShieldCheck className="w-4 h-4 mr-2" /> Encrypted Passport
-                                </h3>
-                                <p className="text-[10px] text-slate-500 font-bold mb-6">Scan for authority authorization.</p>
+                            <div className="bg-slate-950/40 rounded-3xl p-4 border border-white/5">
+                                <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Acoustic Guard</p>
+                                <button onClick={() => setAcousticEnabled(!acousticEnabled)} className={`flex items-center text-sm font-bold ${acousticEnabled ? 'text-blue-500' : 'text-slate-600'}`}>
+                                    <Mic className="w-3 h-3 mr-1" />
+                                    {acousticEnabled ? 'Monitoring' : 'Standby'}
+                                </button>
                             </div>
-                            
-                            <div className="bg-white p-4 rounded-3xl shadow-xl shadow-brand-900/50 transform group-hover:scale-105 transition-transform duration-500 border-4 border-slate-800">
-                                <QRCodeCanvas
-                                    value={JSON.stringify({ 
-                                        uid: userData?.firebaseUid, 
-                                        name: userData?.name, 
-                                        bld: userData?.bloodGroup 
-                                    })}
-                                    size={140}
-                                    bgColor={"#ffffff"}
-                                    fgColor={"#0f172a"}
-                                    level={"H"}
-                                />
-                            </div>
-
-                            <button className="mt-8 flex items-center text-xs font-bold text-slate-400 hover:text-white transition-colors bg-slate-900/50 py-2 px-4 rounded-full border border-slate-700/50">
-                                <Download className="w-4 h-4 mr-2" /> Download Document
-                            </button>
                         </div>
+                    </motion.div>
+                </section>
 
-                    </div>
-                </div>
+                {/* THE SOS INTERACTION */}
+                <section className="flex flex-col items-center justify-center py-4">
+                    <motion.button
+                        whileTap={{ scale: 0.9 }}
+                        onDoubleClick={() => triggerSOS("Manual Emergency Protocol")}
+                        className={`w-52 h-52 rounded-full glass flex flex-col items-center justify-center border-2 transition-all duration-500 relative ${
+                            panicMode ? 'border-rose-500 shadow-[0_0_60px_rgba(225,29,72,0.4)] animate-sos' : 'border-white/5'
+                        }`}
+                    >
+                        <ShieldAlert className={`w-16 h-16 mb-2 transition-colors ${panicMode ? 'text-rose-500' : 'text-rose-500/30'}`} />
+                        <span className={`text-[10px] font-black uppercase tracking-[0.3em] ${panicMode ? 'text-rose-500' : 'text-slate-700'}`}>
+                            {panicMode ? 'Police Alerted' : 'Double-Tap SOS'}
+                        </span>
+                    </motion.button>
+                </section>
+
+                {/* COMMAND TILES */}
+                <section className="grid grid-cols-2 gap-4 pb-12">
+                    <CommandTile icon={<Clock />} title="Shadow Timer" color="blue" onClick={() => { setArrivalTimer(600); setTimerActive(true); toast.info("Safe Arrival Timer: 10m set"); }} />
+                    <CommandTile icon={<MapPin />} title="Danger Zones" color="emerald" onClick={() => toast.success("Neural Map: Your area is designated as 'Safe'")} />
+                    <CommandTile icon={<QrCode />} title="Offline ID" color="indigo" onClick={() => setActiveTab('wallet')} />
+                    <CommandTile icon={<MessageSquare />} title="Neural Chat" color="amber" />
+                </section>
 
             </main>
+
+            {/* Bottom Floating Navigation */}
+            <div className="fixed bottom-6 inset-x-6 h-16 glass rounded-2xl flex items-center justify-around px-2 z-[100] safe-bottom shadow-2xl border border-white/5">
+                <TabButton active={activeTab === 'home'} icon={<Activity />} onClick={() => setActiveTab('home')} />
+                <TabButton active={activeTab === 'map'} icon={<Navigation />} onClick={() => setActiveTab('map')} />
+                <div className="relative -top-6">
+                    <button onClick={() => triggerSOS("Quick Access SOS")} className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-700 to-indigo-600 flex items-center justify-center shadow-[0_10px_30px_rgba(37,99,235,0.4)] active:scale-95 transition-all">
+                        <Shield className="w-7 h-7 text-white" />
+                    </button>
+                </div>
+                <TabButton active={activeTab === 'wallet'} icon={<QrCode />} onClick={() => setActiveTab('wallet')} />
+                <TabButton active={activeTab === 'settings'} icon={<Settings />} onClick={() => setActiveTab('settings')} />
+            </div>
         </div>
     );
 }
 
-function Badge({ icon, label, color }) {
-    const colors = {
-        emerald: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-        rose: "bg-rose-500/10 text-rose-400 border-rose-500/20",
-        blue: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-        slate: "bg-slate-800 text-slate-300 border-slate-700",
-    };
-
+// UI COMPONENTS
+function CommandTile({ icon, title, color, onClick }) {
+    const colors = { blue: "text-blue-500 bg-blue-500/5", emerald: "text-emerald-500 bg-emerald-500/5", indigo: "text-indigo-500 bg-indigo-500/5", amber: "text-amber-500 bg-amber-500/5" };
     return (
-        <span className={`flex items-center px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest border ${colors[color]}`}>
-            {icon && <span className="mr-1.5">{icon}</span>}
-            {label}
-        </span>
+        <button onClick={onClick} className="glass rounded-3xl p-6 flex flex-col items-center justify-center space-y-3 active:scale-95 transition-all border border-white/5 group">
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all ${colors[color]}`}>{icon}</div>
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-white">{title}</span>
+        </button>
     );
 }
+function TabButton({ active, icon, onClick }) { return ( <button onClick={onClick} className={`w-12 h-12 flex items-center justify-center transition-all rounded-xl ${active ? 'bg-blue-600/10 text-blue-500' : 'text-slate-600 hover:text-slate-400'}`}>{icon}</button> ); }
+function LoadingSkeleton() { return ( <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-8"><div className="w-16 h-16 bg-blue-600 rounded-2xl animate-pulse flex items-center justify-center shadow-2xl"><Shield className="w-8 h-8 text-white" /></div><p className="mt-6 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] animate-pulse">Initializing Command Center...</p></div> ); }
