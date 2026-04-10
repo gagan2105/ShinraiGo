@@ -29,7 +29,11 @@ export default function Onboarding() {
 
     const nextStep = () => {
         if (step === 1 && (!formData.fullName || !formData.phone)) {
-            toast.error("Please fill in basic details");
+            toast.error("Please fill in your basic details (Name & Phone).");
+            return;
+        }
+        if (step === 2 && (!formData.emergencyContact || !formData.bloodGroup)) {
+            toast.error("Please provide your Emergency Contact and Blood Group.");
             return;
         }
         setStep(step + 1);
@@ -39,6 +43,12 @@ export default function Onboarding() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        if (!formData.nationality || !formData.idNumber) {
+            toast.error("Please complete your Nationality and ID details.");
+            return;
+        }
+
         setLoading(true);
         try {
             let idToken;
