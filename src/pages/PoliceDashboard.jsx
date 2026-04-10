@@ -11,6 +11,9 @@ export default function PoliceDashboard() {
     const [isLoading, setIsLoading] = useState(true);
     const [activeUsers, setActiveUsers] = useState([]);
 
+    const [heatmapData, setHeatmapData] = useState([]);
+    const [hotzones, setHotzones] = useState([]);
+
     useEffect(() => {
         // Fetch live feed initially
         const fetchFeed = async () => {
@@ -18,6 +21,19 @@ export default function PoliceDashboard() {
                 const response = await fetch(ENDPOINTS.LIVE_FEED);
                 const data = await response.json();
                 setFeed(data);
+                
+                // Extract coordinates for heatmap from panic incidents
+                // Note: In a production build, these locations are parsed from the string "Lat: X, Lng: Y"
+                const points = data
+                    .filter(item => item.type === 'panic' && item.location.includes('Lat:'))
+                    .map(item => {
+                        const parts = item.location.split(',');
+                        const lat = parseFloat(parts[0].replace('Lat:', '').trim());
+                        const lng = parseFloat(parts[1].replace('Lng:', '').trim());
+                        return [lat, lng, 0.8]; // Intensity
+                    });
+                
+                setHeatmapData(points);
                 setIsLoading(false);
             } catch (error) {
                 console.error("Failed to fetch live feed", error);
@@ -27,22 +43,24 @@ export default function PoliceDashboard() {
         };
 
         fetchFeed();
-
-        // Setup polling every 3 seconds to simulate "Live" connection
         const interval = setInterval(fetchFeed, 3000);
 
-        // Generate Simulated "Snap Map" GPS nodes 
-        // In production, this pulls live Capacitor geolocation telemetry from MongoDB
+        // Simulated High-Risk Spatial Zones (K-Means Simulation)
+        setHotzones([
+            [27.0450, 88.2610, 0.4],
+            [27.0310, 88.2563, 0.6]
+        ]);
+
         const generateMockSnapMap = () => {
             const baseLat = 27.0410;
             const baseLng = 88.2663;
-            const users = Array.from({length: 6}, (_, i) => ({
+            const users = Array.from({length: 8}, (_, i) => ({
                 id: `tourist_${i}`,
                 name: `Tourist ${String.fromCharCode(65+i)}`,
-                lat: baseLat + (Math.random() - 0.5) * 0.02,
-                lng: baseLng + (Math.random() - 0.5) * 0.02,
+                lat: baseLat + (Math.random() - 0.5) * 0.03,
+                lng: baseLng + (Math.random() - 0.5) * 0.03,
                 profilePic: `https://i.pravatar.cc/150?u=tourist_${i}`,
-                status: Math.random() > 0.5 ? 'Active' : 'Stationary'
+                status: Math.random() > 0.7 ? 'Moving' : 'Stationary'
             }));
             setActiveUsers(users);
         };
@@ -224,7 +242,11 @@ export default function PoliceDashboard() {
 
                 {/* Map Interface Area */}
                 <div className="flex-1 relative w-full h-full z-10">
-                    <MapComponent selectedIncident={selectedUser} activeUsers={activeUsers} />
+                    <MapComponent 
+                        selectedIncident={selectedUser} 
+                        activeUsers={activeUsers} 
+                        heatmapData={[...heatmapData, ...hotzones]} 
+                    />
                     
                     {/* Satellite Overlay Effect when user is selected */}
                     <AnimatePresence>

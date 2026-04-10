@@ -31,8 +31,14 @@
 *   **Satellite Lock Tracking**: Geospatial monitoring of authorized tourist groups with automated victim identification during SOS events.
 *   **Rapid Response Dispatch**: Integrated unit management for executing immediate ground deployment based on live GPS telemetry and Medical Dossiers.
 
-### 🧠 3. Edge AI Anomaly Detection
-*   **Predictive Guardianship**: Logic that identifies deviations from standard transit patterns or environmental noise anomalies (Screams, Gunshots) before a manual trigger is possible.
+### 🧠 3. Edge AI & Native Sentinels
+*   **Audio Sentinel (Native)**: Leverages `capacitor-voice-recorder` to analyze ambient acoustic spikes (screams, gunshots) in real-time.
+*   **Predictive Guardianship**: A TensorFlow-powered Neural Threat Engine that evaluates sensory data (Audio, Time, Motion) to assign a 0-100% confidence score to every SOS alert.
+*   **Spatial Hotzones**: Real-time predictive heatmaps that visualize high-risk clusters for central command using K-Means spatial simulation.
+
+### 📱 4. Native Android Bedrock
+*   **Capacitor Architecture**: Fully cross-platform native bridge supporting Haptics, Geolocation, and Secure Storage.
+*   **Hardware Intercepts**: Direct access to the device's tactile feedback and GPS-lock during emergency events.
 
 ---
 

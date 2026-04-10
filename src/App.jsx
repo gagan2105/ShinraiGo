@@ -4,7 +4,6 @@ import { AuthProvider } from "./context/AuthContext";
 import { Toaster } from "sonner";
 import { useEffect } from "react";
 import { StatusBar, Style } from '@capacitor/status-bar';
-import { NavigationBar } from '@capgo/capacitor-navigationbar';
 import { Capacitor } from '@capacitor/core';
 
 // Core Pages
@@ -41,11 +40,6 @@ function App() {
           // Set Status Bar to transparent/dark to match the app theme
           await StatusBar.setStyle({ style: Style.Dark });
           await StatusBar.setBackgroundColor({ color: '#020617' }); // slate-950
-          
-          // Set Navigation Bar (Bottom) to match theme
-          if (Capacitor.getPlatform() === 'android') {
-            await NavigationBar.setColor({ color: '#020617' });
-          }
         } catch (e) {
           console.warn("Native UI setup failed", e);
         }
