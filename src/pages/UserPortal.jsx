@@ -413,9 +413,22 @@ function PortalSettingsView({ userData, setUserData, logout, navigate, shakeEnab
     const [editForm, setEditForm] = useState({
         name: userData?.name || '',
         phone: userData?.phone || '',
-        bloodGroup: userData?.bloodGroup || 'O+'
+        bloodGroup: userData?.bloodGroup || 'O+',
+        profilePic: userData?.profilePic || "https://i.pravatar.cc/150?img=11"
     });
     const [saving, setSaving] = useState(false);
+    const fileInputRef = useRef(null);
+
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setEditForm({ ...editForm, profilePic: reader.result });
+            };
+            reader.readAsDataURL(file);
+        }
+    };
 
     const handleSaveProfile = async () => {
         setSaving(true);
@@ -430,7 +443,6 @@ function PortalSettingsView({ userData, setUserData, logout, navigate, shakeEnab
             // Push to Backend
             let idToken = "DUMMY_TOKEN"; 
             try { 
-                // This is a simplified call, in prod we'd use actual auth token
                 await axios.post(ENDPOINTS.SYNC, { ...editForm, isUpdate: true }, {
                     headers: { Authorization: `Bearer ${idToken}` }
                 });
@@ -447,6 +459,13 @@ function PortalSettingsView({ userData, setUserData, logout, navigate, shakeEnab
     if (subTab === 'personal') {
         return (
             <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="h-screen pt-20 px-6 overflow-y-auto no-scrollbar pb-32">
+                <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    className="hidden" 
+                    accept="image/*" 
+                    onChange={handleFileChange} 
+                />
                 <div className="flex justify-between items-center mb-6">
                     <button onClick={() => setSubTab('list')} className="text-blue-500 text-xs font-bold uppercase flex items-center"><ChevronRight className="w-4 h-4 rotate-180 mr-1" /> Back</button>
                     {!isEditing ? (
@@ -459,9 +478,21 @@ function PortalSettingsView({ userData, setUserData, logout, navigate, shakeEnab
                 <h3 className="text-xl font-black uppercase mb-8 italic">Personal <span className="text-slate-500">Substrate</span></h3>
                 
                 <div className="flex justify-center mb-8 relative">
-                    <div className="w-24 h-24 rounded-[2rem] overflow-hidden border-2 border-white/5 bg-slate-900 flex items-center justify-center">
-                        <img src={userData?.profilePic || "https://i.pravatar.cc/150?img=11"} className="w-full h-full object-cover" />
-                    </div>
+                    <button 
+                        disabled={!isEditing}
+                        onClick={() => fileInputRef.current?.click()}
+                        className={`w-24 h-24 rounded-[2rem] overflow-hidden border-2 border-white/5 bg-slate-900 flex items-center justify-center relative group transition-all ${isEditing ? 'ring-2 ring-blue-500/50 scale-105 shadow-2xl shadow-blue-500/20' : ''}`}
+                    >
+                        <img src={isEditing ? editForm.profilePic : userData?.profilePic || "https://i.pravatar.cc/150?img=11"} className="w-full h-full object-cover" />
+                        {isEditing && (
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Camera className="w-6 h-6 text-white" />
+                            </div>
+                        )}
+                    </button>
+                    {isEditing && (
+                        <div className="absolute -bottom-2 bg-blue-600 text-[8px] font-black uppercase px-2 py-0.5 rounded-full text-white shadow-lg animate-bounce">Change</div>
+                    )}
                 </div>
 
                 {isEditing ? (
