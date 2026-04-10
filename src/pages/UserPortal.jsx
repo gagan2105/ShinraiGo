@@ -13,6 +13,7 @@ import { Preferences } from '@capacitor/preferences';
 import { VoiceRecorder } from 'capacitor-voice-recorder';
 import { App } from '@capacitor/app';
 import { Device } from '@capacitor/device';
+import MapComponent from "../components/MapComponent";
 
 export default function UserPortal() {
     const { currentUser, logout } = useAuth();
@@ -316,12 +317,14 @@ function LoadingSkeleton() { return ( <div className="min-h-screen bg-slate-950 
 function PortalMapView() {
     return (
         <motion.main initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="h-screen relative pt-8 pb-24 flex items-center justify-center">
-            <div className="absolute inset-0 bg-slate-900 flex flex-col items-center justify-center text-center p-10">
-                <Navigation className="w-20 h-20 text-emerald-500/20 mb-6 animate-pulse" />
-                <h3 className="text-xl font-black uppercase tracking-tighter mb-2 italic">Neural Map <span className="text-emerald-500">Live</span></h3>
-                <p className="text-xs text-slate-500 max-w-xs">Connecting to regional satellite nodes... Your real-time geospatial safety context is being synchronized.</p>
-                <div className="mt-8 px-6 py-3 bg-emerald-500/10 border border-emerald-500/20 rounded-full text-[10px] font-black uppercase tracking-widest text-emerald-500">
-                    GPS LOCK: ACTIVE
+            <div className="absolute inset-x-4 top-8 bottom-28 glass rounded-3xl overflow-hidden border border-white/5 shadow-2xl">
+                <MapComponent enableSmartRouting={true} />
+            </div>
+            {/* Overlay Info */}
+            <div className="absolute top-12 left-8 right-8 z-[10] flex justify-between items-center pointer-events-none">
+                <div className="bg-slate-950/80 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/5 flex items-center space-x-2">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white">Neural Map Lock</span>
                 </div>
             </div>
         </motion.main>
