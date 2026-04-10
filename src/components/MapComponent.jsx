@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline, Circle } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import 'leaflet.heat';
@@ -219,27 +219,66 @@ export default function MapComponent({ selectedIncident, heatmapData = [], enabl
                     </Popup>
                 </Marker>
             ) : realTimePos ? (
-                <Marker
-                    position={realTimePos}
-                    icon={userIcon}
-                >
-                    <Popup>
-                        <div className="font-sans">
-                            <strong className="text-violet-600 border-b border-violet-100 pb-1 mb-1 flex items-center">
-                                <span className="flex h-2 w-2 relative mr-2">
-                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75"></span>
-                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-violet-500"></span>
+                <>
+                    <Marker
+                        position={realTimePos}
+                        icon={userIcon}
+                    >
+                        <Popup>
+                            <div className="font-sans">
+                                <strong className="text-violet-600 border-b border-violet-100 pb-1 mb-1 flex items-center">
+                                    <span className="flex h-2 w-2 relative mr-2">
+                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-violet-400 opacity-75"></span>
+                                      <span className="relative inline-flex rounded-full h-2 w-2 bg-violet-500"></span>
+                                    </span>
+                                    Your Real-Time Location
+                                </strong>
+                                <span className="text-xs text-slate-600 mt-1">Live GPS tracking active</span>
+                                <span className="text-[9px] text-slate-400 font-mono mt-1">
+                                    {realTimePos[0].toFixed(5)}, {realTimePos[1].toFixed(5)}
                                 </span>
-                                Your Real-Time Location
-                            </strong>
-                            <span className="text-xs text-slate-600 mt-1">Live GPS tracking active</span>
-                            <span className="text-[9px] text-slate-400 font-mono mt-1">
-                                {realTimePos[0].toFixed(5)}, {realTimePos[1].toFixed(5)}
-                            </span>
-                        </div>
-                    </Popup>
-                </Marker>
+                            </div>
+                        </Popup>
+                    </Marker>
+                    {/* Geofencing: Narsapur Forest Zone */}
+                    <Circle 
+                        center={[17.7470, 78.2750]} 
+                        radius={2000} 
+                        pathOptions={{ color: '#f43f5e', fillColor: '#f43f5e', fillOpacity: 0.1, dashArray: '10, 10' }} 
+                    />
+                    <Circle 
+                        center={[17.7470, 78.2750]} 
+                        radius={1000} 
+                        pathOptions={{ color: '#10b981', fillColor: '#10b981', fillOpacity: 0.05 }} 
+                    />
+                    <GeofenceLogic userPos={realTimePos} />
+                </>
             ) : null}
         </MapContainer>
     );
+}
+
+// Logic to check Geofence entry/exit
+function GeofenceLogic({ userPos }) {
+    const [status, setStatus] = useState('unknown');
+    
+    useEffect(() => {
+        if (!userPos) return;
+        
+        const forestPos = [17.7470, 78.2750];
+        const distance = L.latLng(userPos).distanceTo(L.latLng(forestPos));
+        
+        if (distance > 2000 && status !== 'safe') {
+            import('sonner').then(({ toast }) => toast.success("GEOSPATIAL STATUS: SAFE. You have exited the Narsapur Forest perimeter."));
+            setStatus('safe');
+        } else if (distance <= 2000 && distance > 1000 && status !== 'warning') {
+            import('sonner').then(({ toast }) => toast.warning("GEOSPATIAL WARNING: Approaching Forest Perimeter. Maintain alert protocol."));
+            setStatus('warning');
+        } else if (distance <= 1000 && status !== 'danger') {
+            import('sonner').then(({ toast }) => toast.error("CRITICAL ADVISORY: Within Narsapur Forest Zone. SOS Shadow Timer recommended."));
+            setStatus('danger');
+        }
+    }, [userPos, status]);
+
+    return null;
 }
