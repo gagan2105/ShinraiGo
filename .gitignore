@@ -35,3 +35,6 @@ server/serviceAccountKey.json
 *.sln
 *.sw?
 
+
+.vercel
+.env*.local

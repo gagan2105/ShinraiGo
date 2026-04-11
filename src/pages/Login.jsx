@@ -15,14 +15,18 @@ const Login = () => {
     const [loading, setLoading] = useState(false);
     const [successAnim, setSuccessAnim] = useState(false);
     const navigate = useNavigate();
-    const { currentUser, userRole, setManualUser } = useAuth();
+    const { currentUser, userRole, setManualUser, logout } = useAuth();
 
     useEffect(() => {
         if (currentUser && userRole) {
-            if (userRole === "admin" || userRole === "police") navigate("/admin/police-cmd");
-            else navigate("/user/home");
+            if (currentUser.isDummy) {
+                logout();
+            } else {
+                if (userRole === "admin" || userRole === "police") navigate("/admin/police-cmd");
+                else navigate("/user/home");
+            }
         }
-    }, [currentUser, userRole, navigate]);
+    }, [currentUser, userRole, navigate, logout]);
 
     // Handle initial auth check on mount
     useEffect(() => {

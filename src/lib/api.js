@@ -2,7 +2,7 @@
  * Simple API utility to handle base URLs in different environments.
  * Default to localhost:3000 if no environment variable is provided.
  */
-export const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+export const API_BASE_URL = import.meta.env.VITE_API_URL || (import.meta.env.PROD ? "" : "http://localhost:3000");
 
 // Export standard endpoints if needed
 export const ENDPOINTS = {

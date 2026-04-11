@@ -16,10 +16,18 @@ const Signup = () => {
     const [loading, setLoading] = useState(false);
     const [successAnim, setSuccessAnim] = useState(false);
     const navigate = useNavigate();
-    const { currentUser, userRole } = useAuth();
+    const { currentUser, userRole, logout } = useAuth();
 
-    // Note: Auto-redirect logic should only trigger if they are NOT new
-    // We'll handle refined redirection in the handlers
+    useEffect(() => {
+        if (currentUser && userRole) {
+            if (currentUser.isDummy) {
+                logout();
+            } else {
+                if (userRole === "admin" || userRole === "police") navigate("/admin/police-cmd");
+                else navigate("/user/home");
+            }
+        }
+    }, [currentUser, userRole, navigate, logout]);
 
     useEffect(() => {
         const checkRedirect = async () => {

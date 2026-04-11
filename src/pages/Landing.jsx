@@ -4,7 +4,7 @@ import { Shield, Globe, Zap, Heart, Eye, ArrowRight, MapPin, Navigation, CheckCi
 import { useAuth } from "../context/AuthContext";
 
 export default function Landing() {
-    const { currentUser, userRole } = useAuth();
+    const { currentUser, userRole, logout } = useAuth();
     return (
         <div className="min-h-screen bg-slate-950 text-slate-200 selection:bg-brand-500/30 overflow-hidden">
             {/* Dynamic Background Elements */}
@@ -39,10 +39,10 @@ export default function Landing() {
                                     Live Portal Access
                                 </Link>
                                 <button 
-                                    onClick={() => {
+                                    onClick={async () => {
                                         if (window.confirm("Are you sure you want to log out?")) {
-                                            const { auth } = require('../lib/firebase');
-                                            auth.signOut().then(() => window.location.reload());
+                                            await logout();
+                                            window.location.reload();
                                         }
                                     }}
                                     className="px-6 py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-sm font-bold rounded-full transition-all shadow-lg shadow-rose-500/20"
