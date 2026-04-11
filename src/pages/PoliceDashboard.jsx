@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Shield, MapPin, Bell, AlertTriangle, FileText, CheckCircle, Search, User, Phone, Map, Crosshair, Clock } from "lucide-react";
+import { Shield, MapPin, Bell, AlertTriangle, FileText, CheckCircle, Search, User, Phone, Map, Crosshair, Clock, Video, Activity } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import MapComponent from "../components/MapComponent";
@@ -13,6 +13,7 @@ export default function PoliceDashboard() {
 
     const [heatmapData, setHeatmapData] = useState([]);
     const [hotzones, setHotzones] = useState([]);
+    const [predictiveMode, setPredictiveMode] = useState(false);
 
     useEffect(() => {
         // Fetch live feed initially
@@ -51,20 +52,43 @@ export default function PoliceDashboard() {
             [27.0310, 88.2563, 0.6]
         ]);
 
-        const generateMockSnapMap = () => {
-            const baseLat = 27.0410;
-            const baseLng = 88.2663;
+        const generateMockSnapMap = (centerLat, centerLng) => {
+            const baseLat = centerLat;
+            const baseLng = centerLng;
+            // Slightly tighter spread for easier mobile viewing
+            const spread = 0.015;
+            const mockNames = ["Sarah Jenkins", "David Chen", "Priya Patel", "Marcus Wong", "Elena Rodriguez", "Jamal Washington", "Yuki Tanaka", "Liam O'Connor"];
             const users = Array.from({length: 8}, (_, i) => ({
                 id: `tourist_${i}`,
-                name: `Tourist ${String.fromCharCode(65+i)}`,
-                lat: baseLat + (Math.random() - 0.5) * 0.03,
-                lng: baseLng + (Math.random() - 0.5) * 0.03,
+                name: mockNames[i] || `Tourist ${i}`,
+                lat: baseLat + (Math.random() - 0.5) * spread,
+                lng: baseLng + (Math.random() - 0.5) * spread,
                 profilePic: `https://i.pravatar.cc/150?u=tourist_${i}`,
                 status: Math.random() > 0.7 ? 'Moving' : 'Stationary'
             }));
             setActiveUsers(users);
+            
+            // Re-center simulated hotzones to the user's location as well
+            setHotzones([
+                [baseLat + 0.005, baseLng - 0.005, 0.4],
+                [baseLat - 0.008, baseLng + 0.002, 0.6]
+            ]);
         };
-        generateMockSnapMap();
+
+        if ("geolocation" in navigator) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    generateMockSnapMap(position.coords.latitude, position.coords.longitude);
+                },
+                (error) => {
+                    console.log("Geolocation permission denied/failed. Falling back to default Darjeeling coordinates.", error);
+                    generateMockSnapMap(27.0410, 88.2663);
+                },
+                { timeout: 5000 }
+            );
+        } else {
+            generateMockSnapMap(27.0410, 88.2663);
+        }
 
         return () => clearInterval(interval);
     }, []);
@@ -167,6 +191,29 @@ export default function PoliceDashboard() {
                                     </div>
                                 </div>
 
+                                {selectedUser.type === 'panic' && (
+                                    <div className="mt-4 pt-4 border-t border-slate-100">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <label className="text-[10px] uppercase font-bold text-rose-500 tracking-wider flex items-center">
+                                                <Video className="w-3 h-3 mr-1" /> Live CCTV Intercept
+                                            </label>
+                                            <span className="text-[8px] font-mono bg-rose-100 text-rose-600 px-1 py-0.5 rounded animate-pulse">REC</span>
+                                        </div>
+                                        <div className="relative w-full h-32 bg-slate-900 rounded-lg overflow-hidden border border-rose-200">
+                                            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 animate-pulse mix-blend-overlay"></div>
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                <div className="w-16 h-24 border border-emerald-500/80 rounded relative shadow-[0_0_10px_rgba(16,185,129,0.3)] bg-emerald-500/10">
+                                                    <div className="absolute -top-3 left-0 text-[8px] text-emerald-400 font-mono bg-slate-900/80 px-0.5 rounded shadow">Subject Detected</div>
+                                                </div>
+                                            </div>
+                                            <div className="absolute bottom-1 left-1 text-[8px] text-white/60 font-mono z-10 w-full flex justify-between px-1">
+                                                <span>CAM-04-TIGER-HILL</span>
+                                                <span className="text-emerald-400">FPS: 24</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
                                 <div className="pt-4 space-y-2 border-t border-slate-100">
                                     <button
                                         onClick={() => toast.success("Commencing voice protocol with tourist device.")}
@@ -194,8 +241,10 @@ export default function PoliceDashboard() {
                                         <button 
                                             onClick={async () => {
                                                 try {
+                                                    const randomNames = ["Aiden Carter", "Sofia Rossi", "Omar Al-Fayed", "Chloe Dubois", "Noah Kim", "Emma Watson"];
+                                                    const randomName = randomNames[Math.floor(Math.random() * randomNames.length)];
                                                     const dummyData = {
-                                                        user: "Mock Tourist " + Math.floor(Math.random() * 1000),
+                                                        user: randomName,
                                                         location: "Sector " + (Math.floor(Math.random() * 20)+1) + ", New Delhi",
                                                         idNumber: "AADHAAR-" + Math.floor(Math.random() * 1000000000),
                                                         phone: "+91 98765 43" + Math.floor(Math.random() * 999),
@@ -231,6 +280,20 @@ export default function PoliceDashboard() {
                     <span className="text-sm font-semibold">Live Geo-Spatial Tracking Node</span>
                 </div>
 
+                {/* NEW: Predictive Mode Toggle */}
+                <div className="absolute top-4 right-4 z-20">
+                    <button 
+                        onClick={() => {
+                            setPredictiveMode(!predictiveMode);
+                            if (!predictiveMode) toast("Predictive Crime AI Engine Initialized. Rendering future threat vectors.");
+                        }}
+                        className={`px-4 py-2 rounded-xl flex items-center border shadow-lg backdrop-blur-md transition-all font-bold text-xs uppercase tracking-widest ${predictiveMode ? 'bg-amber-500/20 text-amber-400 border-amber-500/50' : 'bg-slate-800/80 text-slate-400 border-slate-700 hover:bg-slate-700/80'}`}
+                    >
+                        <Activity className={`w-4 h-4 mr-2 ${predictiveMode ? 'animate-pulse' : ''}`} />
+                        {predictiveMode ? 'Predictive Threat AI Active' : 'Enable Predictive AI'}
+                    </button>
+                </div>
+
                 <div className="absolute bottom-4 left-4 z-20 bg-slate-800/80 backdrop-blur-md border border-slate-700 text-slate-300 p-3 rounded-xl shadow-lg w-64 pointer-events-none">
                     <h4 className="text-xs font-bold tracking-wider uppercase mb-2 text-slate-400">Map Legend</h4>
                     <div className="space-y-1.5 text-sm">
@@ -245,8 +308,22 @@ export default function PoliceDashboard() {
                     <MapComponent 
                         selectedIncident={selectedUser} 
                         activeUsers={activeUsers} 
-                        heatmapData={[...heatmapData, ...hotzones]} 
+                        heatmapData={[...(predictiveMode ? [[27.0420, 88.2630, 0.5], [27.0460, 88.2680, 0.7], [27.0380, 88.2580, 0.4]] : []), ...heatmapData, ...hotzones]} 
                     />
+                    
+                    {/* Predictive AI Overlay Visuals */}
+                    <AnimatePresence>
+                        {predictiveMode && !selectedUser && (
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="absolute inset-0 pointer-events-none z-20 overflow-hidden mix-blend-overlay"
+                            >
+                                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/hexellence.png')] opacity-[0.15]"></div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                     
                     {/* Satellite Overlay Effect when user is selected */}
                     <AnimatePresence>

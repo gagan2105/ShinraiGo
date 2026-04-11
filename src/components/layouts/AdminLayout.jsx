@@ -1,13 +1,12 @@
 import { useState } from "react";
 import { Outlet, NavLink } from "react-router-dom";
-import { LayoutDashboard, ShieldCheck, AlertTriangle, LogOut, Menu, X, UserCircle, Smartphone } from "lucide-react";
+import { Home, LayoutDashboard, ShieldCheck, AlertTriangle, LogOut, Menu, X, UserCircle, Smartphone } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useAuth } from "../../context/AuthContext";
 
 const navigation = [
-    { name: 'Dashboard', href: '/admin/dashboard', icon: LayoutDashboard },
+    { name: 'Home', href: '/admin/dashboard', icon: Home },
     { name: 'Police Cmd', href: '/admin/police-cmd', icon: ShieldCheck },
-    { name: 'Digital ID', href: '/admin/digital-id', icon: ShieldCheck }, 
     { name: 'Anomaly Detection', href: '/admin/anomalies', icon: AlertTriangle },
 ];
 

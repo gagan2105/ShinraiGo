@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Shield, Bell, MapPin, ShieldAlert, Navigation, QrCode, MessageSquare, Settings, User, Heart, Info, LogOut, Loader2, Zap, Activity, ShieldCheck, ChevronRight, Share2, Camera, Phone, Download, RefreshCcw, Wifi, Battery, Search, Eye, Clock, ZapOff, Mic } from "lucide-react";
+import { Shield, Bell, MapPin, ShieldAlert, Navigation, QrCode, MessageSquare, Settings, User, Heart, Info, LogOut, Loader2, Zap, Activity, ShieldCheck, ChevronRight, Share2, Camera, Phone, Download, RefreshCcw, Wifi, Battery, Search, Eye, Clock, ZapOff, Mic, Home } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useAuth } from "../context/AuthContext";
@@ -287,7 +287,7 @@ export default function UserPortal() {
 
             {/* Bottom Floating Navigation */}
             <div className="fixed bottom-6 inset-x-6 h-16 glass rounded-2xl flex items-center justify-around px-2 z-[100] safe-bottom shadow-2xl border border-white/5">
-                <TabButton active={activeTab === 'home'} icon={<Activity />} onClick={() => setActiveTab('home')} />
+                <TabButton active={activeTab === 'home'} icon={<Home />} onClick={() => setActiveTab('home')} />
                 <TabButton active={activeTab === 'map'} icon={<Navigation />} onClick={() => setActiveTab('map')} />
                 <div className="relative -top-6">
                     <button onClick={() => triggerSOS("Quick Access SOS")} className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-blue-700 to-indigo-600 flex items-center justify-center shadow-[0_10px_30px_rgba(37,99,235,0.4)] active:scale-95 transition-all">

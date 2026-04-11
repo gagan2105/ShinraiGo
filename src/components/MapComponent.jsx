@@ -67,17 +67,37 @@ function ChangeView({ center, zoom }) {
     return null;
 }
 
+// High-Risk Geospatial Intelligence Database
+const DANGER_ZONES = [
+    { id: 'z1', name: 'Sundarbans Tiger Reserve', pos: [21.9497, 89.1833], radius: 15000, risk: 'Critical', desc: 'Active tiger habitat & complex mangroves' },
+    { id: 'z2', name: 'Parvati Valley (Bermuda Triangle)', pos: [32.0100, 77.3150], radius: 5000, risk: 'High', desc: 'Frequent hiker disappearances & rugged terrain' },
+    { id: 'z3', name: 'Gadchiroli Red Zone', pos: [20.1700, 80.0000], radius: 20000, risk: 'Critical', desc: 'High risk of insurgency activity' },
+    { id: 'z4', name: 'Jim Corbett Core Sector', pos: [29.5333, 78.7733], radius: 8000, risk: 'High', desc: 'Wild elephant & tiger transit corridor' }
+];
+
 export default function MapComponent({ selectedIncident, heatmapData = [], enableSmartRouting = true, activeUsers = [] }) {
     const defaultCenter = [27.0410, 88.2663];
     const defaultZoom = 13;
 
     // Real-Time GPS State
     const [realTimePos, setRealTimePos] = useState(null);
+    const [testZone, setTestZone] = useState(null);
 
     useEffect(() => {
         if ("geolocation" in navigator) {
             navigator.geolocation.getCurrentPosition((position) => {
-                setRealTimePos([position.coords.latitude, position.coords.longitude]);
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                setRealTimePos([lat, lng]);
+                
+                // Spawn a dynamic "Research Test Zone" 1.5km away from the user for demo purposes
+                setTestZone({
+                    name: "AI-Flagged Risk Perimeter",
+                    pos: [lat + 0.008, lng + 0.008],
+                    radius: 1000,
+                    risk: 'Warning',
+                    desc: 'Simulated dangerous forest blockage detected by Neural Engine'
+                });
             }, (error) => {
                 console.warn("Geolocation blocked or failed:", error.message);
             }, {
@@ -198,6 +218,31 @@ export default function MapComponent({ selectedIncident, heatmapData = [], enabl
                 </Marker>
             ))}
 
+            {/* Rendering High-Risk Hot Zones */}
+            {[...DANGER_ZONES, ...(testZone ? [testZone] : [])].map(zone => (
+                <Circle 
+                    key={zone.name}
+                    center={zone.pos}
+                    radius={zone.radius}
+                    pathOptions={{ 
+                        color: zone.risk === 'Critical' ? '#f43f5e' : '#f59e0b', 
+                        fillColor: zone.risk === 'Critical' ? '#f43f5e' : '#f59e0b', 
+                        fillOpacity: 0.15,
+                        dashArray: '5, 10'
+                    }}
+                >
+                    <Popup>
+                        <div className="p-2">
+                            <h4 className={`font-bold mb-1 ${zone.risk === 'Critical' ? 'text-rose-600' : 'text-amber-600'}`}>HOT ZONE: {zone.name}</h4>
+                            <p className="text-xs text-slate-600 leading-tight">{zone.desc}</p>
+                            <div className="mt-2 text-[10px] uppercase font-black tracking-widest bg-slate-100 p-1 text-center rounded">
+                                Risk Level: {zone.risk}
+                            </div>
+                        </div>
+                    </Popup>
+                </Circle>
+            ))}
+
             {activeMarker ? (
                 <Marker
                     position={activeMarker.position}
@@ -240,18 +285,7 @@ export default function MapComponent({ selectedIncident, heatmapData = [], enabl
                             </div>
                         </Popup>
                     </Marker>
-                    {/* Geofencing: Narsapur Forest Zone */}
-                    <Circle 
-                        center={[17.7470, 78.2750]} 
-                        radius={2000} 
-                        pathOptions={{ color: '#f43f5e', fillColor: '#f43f5e', fillOpacity: 0.1, dashArray: '10, 10' }} 
-                    />
-                    <Circle 
-                        center={[17.7470, 78.2750]} 
-                        radius={1000} 
-                        pathOptions={{ color: '#10b981', fillColor: '#10b981', fillOpacity: 0.05 }} 
-                    />
-                    <GeofenceLogic userPos={realTimePos} />
+                    <GeofenceLogic userPos={realTimePos} zones={[...DANGER_ZONES, ...(testZone ? [testZone] : [])]} />
                 </>
             ) : null}
         </MapContainer>
@@ -259,26 +293,34 @@ export default function MapComponent({ selectedIncident, heatmapData = [], enabl
 }
 
 // Logic to check Geofence entry/exit
-function GeofenceLogic({ userPos }) {
-    const [status, setStatus] = useState('unknown');
+function GeofenceLogic({ userPos, zones = [] }) {
+    const [activeZone, setActiveZone] = useState(null);
     
     useEffect(() => {
-        if (!userPos) return;
+        if (!userPos || zones.length === 0) return;
         
-        const forestPos = [17.7470, 78.2750];
-        const distance = L.latLng(userPos).distanceTo(L.latLng(forestPos));
-        
-        if (distance > 2000 && status !== 'safe') {
-            import('sonner').then(({ toast }) => toast.success("GEOSPATIAL STATUS: SAFE. You have exited the Narsapur Forest perimeter."));
-            setStatus('safe');
-        } else if (distance <= 2000 && distance > 1000 && status !== 'warning') {
-            import('sonner').then(({ toast }) => toast.warning("GEOSPATIAL WARNING: Approaching Forest Perimeter. Maintain alert protocol."));
-            setStatus('warning');
-        } else if (distance <= 1000 && status !== 'danger') {
-            import('sonner').then(({ toast }) => toast.error("CRITICAL ADVISORY: Within Narsapur Forest Zone. SOS Shadow Timer recommended."));
-            setStatus('danger');
+        let currentlyIn = null;
+
+        zones.forEach(zone => {
+            const distance = L.latLng(userPos).distanceTo(L.latLng(zone.pos));
+            if (distance <= zone.radius) {
+                currentlyIn = zone;
+            }
+        });
+
+        if (currentlyIn && activeZone?.name !== currentlyIn.name) {
+            import('sonner').then(({ toast }) => {
+                const message = `CRITICAL ENTRY: You have entered ${currentlyIn.name}. ${currentlyIn.desc}. AI Shadow Monitoring engaged.`;
+                if (currentlyIn.risk === 'Critical') toast.error(message);
+                else toast.warning(message);
+            });
+            setActiveZone(currentlyIn);
+        } else if (!currentlyIn && activeZone) {
+            import('sonner').then(({ toast }) => toast.success(`SAFE EXIT: You have left ${activeZone.name}. Resume standard protocol.`));
+            setActiveZone(null);
         }
-    }, [userPos, status]);
+    }, [userPos, zones, activeZone]);
 
     return null;
 }
+

@@ -189,9 +189,10 @@ const Login = () => {
 
                     <div className="mt-10 pt-8 border-t border-slate-800">
                          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest text-center mb-6">Emergency Prototypes</p>
-                         <div className="grid grid-cols-2 gap-4">
-                              <button onClick={() => handleDummyLogin('police')} className="bg-slate-900 hover:bg-slate-800 p-3 rounded-xl border border-slate-800 flex items-center justify-center text-xs text-slate-400 font-bold transition-all"><Shield className="w-4 h-4 mr-2 text-blue-500" /> Police Cmd</button>
-                              <button onClick={() => handleDummyLogin('user')} className="bg-slate-900 hover:bg-slate-800 p-3 rounded-xl border border-slate-800 flex items-center justify-center text-xs text-slate-400 font-bold transition-all"><Fingerprint className="w-4 h-4 mr-2 text-emerald-500" /> Tourist</button>
+                         <div className="grid grid-cols-3 gap-2">
+                              <button onClick={() => handleDummyLogin('admin')} className="bg-slate-900 hover:bg-slate-800 p-3 rounded-xl border border-slate-800 flex items-center justify-center text-xs text-slate-400 font-bold transition-all"><Zap className="w-4 h-4 mr-1 text-rose-500" /> Admin</button>
+                              <button onClick={() => handleDummyLogin('police')} className="bg-slate-900 hover:bg-slate-800 p-3 rounded-xl border border-slate-800 flex items-center justify-center text-xs text-slate-400 font-bold transition-all"><Shield className="w-4 h-4 mr-1 text-blue-500" /> Police</button>
+                              <button onClick={() => handleDummyLogin('user')} className="bg-slate-900 hover:bg-slate-800 p-3 rounded-xl border border-slate-800 flex items-center justify-center text-xs text-slate-400 font-bold transition-all"><Fingerprint className="w-4 h-4 mr-1 text-emerald-500" /> Tourist</button>
                          </div>
                     </div>
 

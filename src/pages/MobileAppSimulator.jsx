@@ -3,7 +3,8 @@ import { QRCodeCanvas } from "qrcode.react";
 import { ENDPOINTS } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { Bell, AlertTriangle, Navigation, Activity, ShieldAlert, ShieldCheck, QrCode as QrCodeIcon, Bot, Settings, Mic, Send, ChevronRight, Download, FileText, CheckCircle, Info, LogOut, Home } from "lucide-react";
 
 export default function MobileAppSimulator() {
     const { currentUser } = useAuth();
@@ -488,8 +489,8 @@ export default function MobileAppSimulator() {
                             className={`flex flex-col items-center cursor-pointer transition-colors ${activeTab === 'home' ? 'text-brand-600' : 'text-slate-400 hover:text-slate-600'}`}
                             onClick={() => setActiveTab('home')}
                         >
-                            <ShieldCheck className="w-6 h-6 mb-1" />
-                            <span className="text-[10px] font-bold tracking-wide">Safeguard</span>
+                            <Home className="w-6 h-6 mb-1" />
+                            <span className="text-[10px] font-bold tracking-wide">Home</span>
                         </div>
                         <div
                             className={`flex flex-col items-center cursor-pointer transition-colors ${activeTab === 'id' ? 'text-brand-600' : 'text-slate-400 hover:text-slate-600'}`}

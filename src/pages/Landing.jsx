@@ -31,12 +31,25 @@ export default function Landing() {
 
                     <div className="flex items-center space-x-4">
                         {currentUser ? (
-                            <Link 
-                                to={userRole === 'admin' || userRole === 'police' ? "/admin/police-cmd" : "/user/home"} 
-                                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-full transition-all shadow-lg shadow-emerald-500/20"
-                            >
-                                Live Portal Access
-                            </Link>
+                            <>
+                                <Link 
+                                    to={userRole === 'admin' || userRole === 'police' ? "/admin/dashboard" : "/user/home"} 
+                                    className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-full transition-all shadow-lg shadow-emerald-500/20"
+                                >
+                                    Live Portal Access
+                                </Link>
+                                <button 
+                                    onClick={() => {
+                                        if (window.confirm("Are you sure you want to log out?")) {
+                                            const { auth } = require('../lib/firebase');
+                                            auth.signOut().then(() => window.location.reload());
+                                        }
+                                    }}
+                                    className="px-6 py-2.5 bg-rose-600 hover:bg-rose-500 text-white text-sm font-bold rounded-full transition-all shadow-lg shadow-rose-500/20"
+                                >
+                                    Logout
+                                </button>
+                            </>
                         ) : (
                             <Link 
                                 to="/login" 

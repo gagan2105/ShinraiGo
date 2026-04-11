@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Activity, AlertOctagon, Map, Clock, Target, AlertTriangle, ShieldCheck } from "lucide-react";
 // eslint-disable-next-line no-unused-vars
 import { motion } from "framer-motion";
@@ -51,6 +52,19 @@ const anomalies = [
 ];
 
 export default function AnomalyDetection() {
+    const [filedReports, setFiledReports] = useState([]);
+
+    const handleInvestigate = (anm) => {
+        const toastId = toast.loading(`Generating E-FIR module for incident ${anm.id}...`);
+        
+        // Simulating the backend AI processing the E-FIR compilation
+        setTimeout(() => {
+            toast.dismiss(toastId);
+            toast.success(`E-FIR for ${anm.tourist} successfully filed in the central blockchain repository.`);
+            setFiledReports(prev => [...prev, anm.id]);
+        }, 2500);
+    };
+
     return (
         <div className="animate-in fade-in duration-500">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
@@ -106,9 +120,10 @@ export default function AnomalyDetection() {
                                 </div>
                                 <div className="flex flex-col space-y-2">
                                     <button
-                                        onClick={() => toast.loading(`Generating E-FIR module for ${anm.id}...`, { duration: 2000 })}
-                                        className="px-4 py-2 bg-slate-900 text-white text-xs font-semibold rounded-lg hover:bg-slate-800 transition-colors shadow-sm whitespace-nowrap">
-                                        Investigate
+                                        disabled={filedReports.includes(anm.id)}
+                                        onClick={() => handleInvestigate(anm)}
+                                        className={`px-4 py-2 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm whitespace-nowrap ${filedReports.includes(anm.id) ? 'bg-emerald-600 hover:bg-emerald-600 cursor-not-allowed' : 'bg-slate-900 hover:bg-slate-800'}`}>
+                                        {filedReports.includes(anm.id) ? 'E-FIR Filed ✔️' : 'Investigate & File E-FIR'}
                                     </button>
                                     <button
                                         onClick={() => toast.success(`Patrol unit dispatched to ${anm.location}`)}

@@ -31,7 +31,7 @@ router.post('/sync', verifyToken, async (req, res) => {
                 user.name = displayName;
             }
             // Force admin role for the nexus email
-            if (email === 'nexus@shinraigo.admin') {
+            if (email === 'nexus@shinraigo.admin' || email === 'nexus3340@gmail.com') {
                 user.role = 'admin';
             } else if (email === 'officer@shinraigo.police') {
                 user.role = 'police';
@@ -43,7 +43,7 @@ router.post('/sync', verifyToken, async (req, res) => {
                 firebaseUid: uid,
                 email: email,
                 name: displayName,
-                role: email === 'nexus@shinraigo.admin' ? 'admin' : (email === 'officer@shinraigo.police' ? 'police' : 'user'),
+                role: (email === 'nexus@shinraigo.admin' || email === 'nexus3340@gmail.com') ? 'admin' : (email === 'officer@shinraigo.police' ? 'police' : 'user'),
                 isOnboarded: false // True new users must onboard
             });
             await user.save();

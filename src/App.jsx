@@ -21,7 +21,6 @@ import UserLayout from "./components/layouts/UserLayout";
 // Admin Pages
 import Dashboard from "./pages/Dashboard";
 import PoliceDashboard from "./pages/PoliceDashboard";
-import DigitalID from "./pages/DigitalID";
 import AnomalyDetection from "./pages/AnomalyDetection";
 
 // User Pages
@@ -85,7 +84,6 @@ function App() {
                 <Route index element={<Navigate to="dashboard" replace />} />
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="police-cmd" element={<PoliceDashboard />} />
-                <Route path="digital-id" element={<DigitalID />} />
                 <Route path="anomalies" element={<AnomalyDetection />} />
               </Route>
             </Route>
