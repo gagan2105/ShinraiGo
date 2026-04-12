@@ -27,6 +27,14 @@ const alertIcon = createColorIcon('red');
 const policeIcon = createColorIcon('gold');
 const hospitalIcon = createColorIcon('green');
 const userIcon = createColorIcon('violet'); // For real-time GPS
+const droneIcon = new L.Icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/9036/9036353.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
+    popupAnchor: [0, -20],
+    className: 'animate-pulse'
+});
 
 // Snap Map style avatar icon
 const createAvatarIcon = (url, isAlert) => new L.divIcon({
@@ -75,13 +83,14 @@ const DANGER_ZONES = [
     { id: 'z4', name: 'Jim Corbett Core Sector', pos: [29.5333, 78.7733], radius: 8000, risk: 'High', desc: 'Wild elephant & tiger transit corridor' }
 ];
 
-export default function MapComponent({ selectedIncident, heatmapData = [], enableSmartRouting = true, activeUsers = [] }) {
+export default function MapComponent({ selectedIncident, heatmapData = [], enableSmartRouting = true, activeUsers = [], droneDispatched = false }) {
     const defaultCenter = [27.0410, 88.2663];
     const defaultZoom = 13;
 
     // Real-Time GPS State
     const [realTimePos, setRealTimePos] = useState(null);
     const [testZone, setTestZone] = useState(null);
+    const [dronePos, setDronePos] = useState(null);
 
     useEffect(() => {
         if ("geolocation" in navigator) {
@@ -159,6 +168,32 @@ export default function MapComponent({ selectedIncident, heatmapData = [], enabl
         }
     }
 
+    // Drone dispatch flight simulation
+    useEffect(() => {
+        if (droneDispatched && activeMarker) {
+            let start = geospatialNodes[0].pos; // Police station
+            let end = activeMarker.position;    // Incident location
+            let step = 0;
+            const steps = 60; // Frames
+
+            const interval = setInterval(() => {
+                step++;
+                if (step <= steps) {
+                    setDronePos([
+                        start[0] + ((end[0] - start[0]) * (step / steps)),
+                        start[1] + ((end[1] - start[1]) * (step / steps))
+                    ]);
+                } else {
+                    clearInterval(interval);
+                }
+            }, 100);
+
+            return () => clearInterval(interval);
+        } else {
+            setDronePos(null);
+        }
+    }, [droneDispatched, activeMarker]);
+
     return (
         <MapContainer
             center={currentCenter}
@@ -179,6 +214,25 @@ export default function MapComponent({ selectedIncident, heatmapData = [], enabl
                     positions={smartEscapeRoute} 
                     pathOptions={{ color: '#10b981', weight: 5, dashArray: '10, 10', lineJoin: 'round' }} 
                 />
+            )}
+
+            {/* AI Intercept Drone Telemetry */}
+            {droneDispatched && dronePos && activeMarker && (
+                <>
+                    <Polyline 
+                        positions={[geospatialNodes[0].pos, dronePos]} 
+                        pathOptions={{ color: '#6366f1', weight: 3, dashArray: '4, 8' }} 
+                    />
+                    <Marker position={dronePos} icon={droneIcon}>
+                        <Popup>
+                            <div className="text-center font-sans">
+                                <strong className="text-indigo-600 block uppercase text-[10px] tracking-widest font-black">AI Drone Fleet</strong>
+                                <span className="text-xs text-slate-500">Autonomous Intercept Active</span>
+                            </div>
+                        </Popup>
+                    </Marker>
+                    <Circle center={dronePos} radius={350} pathOptions={{ color: '#6366f1', fillColor: '#6366f1', fillOpacity: 0.1, weight: 1, dashArray: '4' }} />
+                </>
             )}
 
             {/* Geospatial Intelligence Layer Nodes */}

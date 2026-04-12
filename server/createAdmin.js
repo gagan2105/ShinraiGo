@@ -38,6 +38,7 @@ async function createAdmin() {
         if (dbUser) {
             dbUser.role = 'admin';
             dbUser.firebaseUid = userRecord.uid;
+            dbUser.isOnboarded = true; // Force skip onboarding for existing accounts
             await dbUser.save();
             console.log('Updated user in MongoDB to admin');
         } else {

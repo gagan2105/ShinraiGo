@@ -14,6 +14,7 @@ export default function PoliceDashboard() {
     const [heatmapData, setHeatmapData] = useState([]);
     const [hotzones, setHotzones] = useState([]);
     const [predictiveMode, setPredictiveMode] = useState(false);
+    const [droneDispatched, setDroneDispatched] = useState(false);
 
     useEffect(() => {
         // Fetch live feed initially
@@ -115,6 +116,7 @@ export default function PoliceDashboard() {
 
     const handleFeedClick = (item) => {
         setSelectedUser(item);
+        setDroneDispatched(false);
         toast(`Acquiring satellite lock on ${item.user}...`);
     };
 
@@ -195,20 +197,31 @@ export default function PoliceDashboard() {
                                     <div className="mt-4 pt-4 border-t border-slate-100">
                                         <div className="flex items-center justify-between mb-2">
                                             <label className="text-[10px] uppercase font-bold text-rose-500 tracking-wider flex items-center">
-                                                <Video className="w-3 h-3 mr-1" /> Live CCTV Intercept
+                                                <Video className="w-3 h-3 mr-1" /> Automated CCTV Intercept
                                             </label>
-                                            <span className="text-[8px] font-mono bg-rose-100 text-rose-600 px-1 py-0.5 rounded animate-pulse">REC</span>
+                                            <span className="text-[8px] font-mono bg-rose-100 text-rose-600 px-1 py-0.5 rounded animate-pulse">LIVE LINK</span>
                                         </div>
-                                        <div className="relative w-full h-32 bg-slate-900 rounded-lg overflow-hidden border border-rose-200">
+                                        <div className="relative w-full h-40 bg-slate-900 rounded-lg overflow-hidden border-2 border-slate-700 shadow-inner group">
                                             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 animate-pulse mix-blend-overlay"></div>
-                                            <div className="absolute inset-0 flex items-center justify-center">
-                                                <div className="w-16 h-24 border border-emerald-500/80 rounded relative shadow-[0_0_10px_rgba(16,185,129,0.3)] bg-emerald-500/10">
-                                                    <div className="absolute -top-3 left-0 text-[8px] text-emerald-400 font-mono bg-slate-900/80 px-0.5 rounded shadow">Subject Detected</div>
+                                            {/* Simulated Camera Glitch */}
+                                            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-500/10 to-transparent w-full h-full translate-y-[-100%] group-hover:translate-y-[100%] transition-transform duration-[3s] ease-linear repeat-infinite"></div>
+                                            
+                                            <div className="absolute inset-0 flex items-center justify-center pt-4">
+                                                <div className="w-20 h-28 border-[1.5px] border-rose-500/80 relative shadow-[0_0_15px_rgba(244,63,94,0.4)] bg-rose-500/10">
+                                                    {/* Tracking Corners */}
+                                                    <div className="absolute -top-1 -left-1 w-2 h-2 border-t-2 border-l-2 border-rose-500"></div>
+                                                    <div className="absolute -top-1 -right-1 w-2 h-2 border-t-2 border-r-2 border-rose-500"></div>
+                                                    <div className="absolute -bottom-1 -left-1 w-2 h-2 border-b-2 border-l-2 border-rose-500"></div>
+                                                    <div className="absolute -bottom-1 -right-1 w-2 h-2 border-b-2 border-r-2 border-rose-500"></div>
+                                                    <div className="absolute -top-4 left-0 text-[8px] text-rose-400 font-mono bg-slate-900/90 px-1 rounded shadow tracking-widest flex items-center gap-1">
+                                                        <Crosshair className="w-2 h-2" /> WEAPON DETECTED
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <div className="absolute bottom-1 left-1 text-[8px] text-white/60 font-mono z-10 w-full flex justify-between px-1">
+                                            <div className="absolute bottom-1 left-2 text-[8px] text-white/70 font-mono z-10 w-full flex justify-between pr-4 items-center">
                                                 <span>CAM-04-TIGER-HILL</span>
-                                                <span className="text-emerald-400">FPS: 24</span>
+                                                <span className="text-rose-400 animate-pulse font-bold">POS: {selectedUser.location?.slice(0, 8)}...</span>
+                                                <span className="text-emerald-400">FPS: 59.9</span>
                                             </div>
                                         </div>
                                     </div>
@@ -218,12 +231,16 @@ export default function PoliceDashboard() {
                                     <button
                                         onClick={() => toast.success("Commencing voice protocol with tourist device.")}
                                         className="w-full bg-slate-900 text-white font-semibold text-sm py-2.5 rounded-lg flex items-center justify-center hover:bg-slate-800 transition-colors">
-                                        <Phone className="w-4 h-4 mr-2" /> Connect Immediately
+                                        <Phone className="w-4 h-4 mr-2" /> Connect To Subject
                                     </button>
                                     <button
-                                        onClick={() => toast.info("Dispatching Rapid Response Force.")}
-                                        className="w-full bg-white border border-slate-200 text-slate-700 font-semibold text-sm py-2.5 rounded-lg flex items-center justify-center hover:bg-slate-50 transition-colors">
-                                        <Shield className="w-4 h-4 mr-2" /> Dispatch RRF Unit
+                                        onClick={() => {
+                                            setDroneDispatched(true);
+                                            toast.info("Autonomous Escort Drone Dispatched!");
+                                        }}
+                                        disabled={droneDispatched}
+                                        className={`w-full font-semibold text-sm py-2.5 rounded-lg flex items-center justify-center transition-colors border ${droneDispatched ? 'bg-indigo-50 border-indigo-200 text-indigo-400 cursor-not-allowed' : 'bg-white border-indigo-200 text-indigo-700 hover:bg-indigo-50 shadow-sm shadow-indigo-500/10'}`}>
+                                        <Crosshair className={`w-4 h-4 mr-2 ${droneDispatched ? '' : 'text-indigo-500'}`} /> {droneDispatched ? 'Drone In Transit...' : 'Dispatch Intercept Drone'}
                                     </button>
                                 </div>
                             </motion.div>
@@ -308,7 +325,8 @@ export default function PoliceDashboard() {
                     <MapComponent 
                         selectedIncident={selectedUser} 
                         activeUsers={activeUsers} 
-                        heatmapData={[...(predictiveMode ? [[27.0420, 88.2630, 0.5], [27.0460, 88.2680, 0.7], [27.0380, 88.2580, 0.4]] : []), ...heatmapData, ...hotzones]} 
+                        heatmapData={[...(predictiveMode ? [[27.0420, 88.2630, 0.5], [27.0460, 88.2680, 0.7], [27.0380, 88.2580, 0.4]] : []), ...heatmapData, ...hotzones]}
+                        droneDispatched={droneDispatched}
                     />
                     
                     {/* Predictive AI Overlay Visuals */}
