@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
-import { Shield, MapPin, Bell, AlertTriangle, FileText, CheckCircle, Search, User, Phone, Map, Crosshair, Clock, Video, Activity } from "lucide-react";
+import axios from "axios";
+import { Shield, MapPin, Bell, AlertTriangle, FileText, CheckCircle, Search, User, Phone, Map, Crosshair, Clock, Video, Activity, LogOut } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { Geolocation } from '@capacitor/geolocation';
 import MapComponent from "../components/MapComponent";
 import { ENDPOINTS } from "../lib/api";
 
@@ -44,54 +46,34 @@ export default function PoliceDashboard() {
             }
         };
 
-        fetchFeed();
-        const interval = setInterval(fetchFeed, 3000);
+        // FETCH REAL USER LOCATIONS (Live Fleet Intelligence)
+        const fetchUserLocations = async () => {
+            try {
+                const response = await axios.get(ENDPOINTS.USER_LOCATIONS);
+                setActiveUsers(response.data);
+                console.log(`[Satellite Link] ${response.data.length} registered users acquired.`);
+            } catch (error) {
+                console.warn("Failed to acquire citizen telemetry.");
+            }
+        };
 
-        // Simulated High-Risk Spatial Zones (K-Means Simulation)
+        const fetchTacticalData = () => {
+            fetchFeed();
+            fetchUserLocations();
+        };
+
+        fetchTacticalData();
+        const tacticalInterval = setInterval(fetchTacticalData, 10000); // 10s tactical refresh cycle
+
+        // Initial Hotzone Lock
         setHotzones([
             [27.0450, 88.2610, 0.4],
             [27.0310, 88.2563, 0.6]
         ]);
 
-        const generateMockSnapMap = (centerLat, centerLng) => {
-            const baseLat = centerLat;
-            const baseLng = centerLng;
-            // Slightly tighter spread for easier mobile viewing
-            const spread = 0.015;
-            const mockNames = ["Sarah Jenkins", "David Chen", "Priya Patel", "Marcus Wong", "Elena Rodriguez", "Jamal Washington", "Yuki Tanaka", "Liam O'Connor"];
-            const users = Array.from({length: 8}, (_, i) => ({
-                id: `tourist_${i}`,
-                name: mockNames[i] || `Tourist ${i}`,
-                lat: baseLat + (Math.random() - 0.5) * spread,
-                lng: baseLng + (Math.random() - 0.5) * spread,
-                profilePic: `https://i.pravatar.cc/150?u=tourist_${i}`,
-                status: Math.random() > 0.7 ? 'Moving' : 'Stationary'
-            }));
-            setActiveUsers(users);
-            
-            // Re-center simulated hotzones to the user's location as well
-            setHotzones([
-                [baseLat + 0.005, baseLng - 0.005, 0.4],
-                [baseLat - 0.008, baseLng + 0.002, 0.6]
-            ]);
+        return () => {
+            clearInterval(tacticalInterval);
         };
-
-        if ("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    generateMockSnapMap(position.coords.latitude, position.coords.longitude);
-                },
-                (error) => {
-                    console.log("Geolocation permission denied/failed. Falling back to default Darjeeling coordinates.", error);
-                    generateMockSnapMap(27.0410, 88.2663);
-                },
-                { timeout: 5000 }
-            );
-        } else {
-            generateMockSnapMap(27.0410, 88.2663);
-        }
-
-        return () => clearInterval(interval);
     }, []);
 
     const getIconForType = (type) => {
@@ -253,34 +235,24 @@ export default function PoliceDashboard() {
                                 </div>
                                 
                                 <div className="pt-8 w-full px-4">
-                                    <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100/50 text-center">
-                                        <p className="text-[10px] font-bold text-blue-600 uppercase tracking-widest mb-3">Developer Tools</p>
+                                    <div className="p-4 bg-rose-50/50 rounded-xl border border-rose-100/50 text-center">
+                                        <p className="text-[10px] font-bold text-rose-600 uppercase tracking-widest mb-3">Tactical Operations</p>
                                         <button 
                                             onClick={async () => {
-                                                try {
-                                                    const randomNames = ["Aiden Carter", "Sofia Rossi", "Omar Al-Fayed", "Chloe Dubois", "Noah Kim", "Emma Watson"];
-                                                    const randomName = randomNames[Math.floor(Math.random() * randomNames.length)];
-                                                    const dummyData = {
-                                                        user: randomName,
-                                                        location: "Sector " + (Math.floor(Math.random() * 20)+1) + ", New Delhi",
-                                                        idNumber: "AADHAAR-" + Math.floor(Math.random() * 1000000000),
-                                                        phone: "+91 98765 43" + Math.floor(Math.random() * 999),
-                                                        bloodGroup: ["A+", "B+", "O+", "AB+"][Math.floor(Math.random() * 4)]
-                                                    };
-                                                    await fetch(ENDPOINTS.PANIC_ALERT, {
-                                                        method: 'POST',
-                                                        headers: { 'Content-Type': 'application/json' },
-                                                        body: JSON.stringify(dummyData)
-                                                    });
-                                                    toast.success("Dummy SOS alert broadcasted!");
-                                                } catch (e) {
-                                                    toast.error("Failed to simulate alert. Check backend.");
+                                                if (window.confirm("CRITICAL: Wipe all active SOS records?")) {
+                                                    try {
+                                                        await axios.delete(ENDPOINTS.LIVE_FEED || "/api/feed/live");
+                                                        setFeed([]);
+                                                        toast.success("Active dossier purged successfully.");
+                                                    } catch (e) {
+                                                        toast.error("Wipe failed: System restriction active.");
+                                                    }
                                                 }
                                             }}
-                                            className="w-full bg-blue-600 text-white text-xs font-bold py-2 rounded-lg hover:bg-blue-500 transition-colors shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2"
+                                            className="w-full bg-slate-900 text-white text-xs font-bold py-2 rounded-lg hover:bg-slate-800 transition-colors flex items-center justify-center gap-2"
                                         >
-                                            <AlertTriangle className="w-3 h-3" />
-                                            Simulate SOS Alert
+                                            <LogOut className="w-3 h-3" />
+                                            Purge Active Dossier
                                         </button>
                                     </div>
                                 </div>
@@ -315,7 +287,7 @@ export default function PoliceDashboard() {
                     <h4 className="text-xs font-bold tracking-wider uppercase mb-2 text-slate-400">Map Legend</h4>
                     <div className="space-y-1.5 text-sm">
                         <div className="flex items-center"><span className="w-3 h-3 rounded-full bg-blue-500 mr-2 shadow-[0_0_10px_rgba(59,130,246,0.5)]"></span> Active Patrols</div>
-                        <div className="flex items-center"><span className="w-3 h-3 rounded-full bg-brand-500 mr-2 shadow-[0_0_10px_rgba(99,102,241,0.5)]"></span> Normal Tourists</div>
+                        <div className="flex items-center"><span className="w-3 h-3 rounded-full bg-indigo-500 mr-2 shadow-[0_0_10px_rgba(99,102,241,0.5)]"></span> Monitored Entities</div>
                         <div className="flex items-center"><span className="w-3 h-3 rounded-full bg-rose-500 mr-2 animate-ping shadow-[0_0_10px_rgba(244,63,94,0.5)]"></span> Critical Incident</div>
                     </div>
                 </div>
@@ -327,6 +299,7 @@ export default function PoliceDashboard() {
                         activeUsers={activeUsers} 
                         heatmapData={[...(predictiveMode ? [[27.0420, 88.2630, 0.5], [27.0460, 88.2680, 0.7], [27.0380, 88.2580, 0.4]] : []), ...heatmapData, ...hotzones]}
                         droneDispatched={droneDispatched}
+                        showOwnLocation={false}
                     />
                     
                     {/* Predictive AI Overlay Visuals */}

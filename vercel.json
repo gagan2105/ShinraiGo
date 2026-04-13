@@ -2,7 +2,11 @@
   "version": 2,
   "builds": [
     {
-      "src": "server/server.js",
+      "src": "api/debug.cjs",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "server/server.cjs",
       "use": "@vercel/node"
     },
     {
@@ -15,8 +19,12 @@
   ],
   "rewrites": [
     {
+      "source": "/api/debug",
+      "destination": "/api/debug.cjs"
+    },
+    {
       "source": "/api/(.*)",
-      "destination": "/server/server.js"
+      "destination": "/server/server.cjs"
     },
     {
       "source": "/(.*)",

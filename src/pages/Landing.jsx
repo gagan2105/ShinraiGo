@@ -33,7 +33,7 @@ export default function Landing() {
                         {currentUser ? (
                             <>
                                 <Link 
-                                    to={userRole === 'admin' || userRole === 'police' ? "/admin/dashboard" : "/user/home"} 
+                                    to={userRole === 'admin' || userRole === 'police' ? "/admin/police-cmd" : "/user/home"} 
                                     className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold rounded-full transition-all shadow-lg shadow-emerald-500/20"
                                 >
                                     Live Portal Access
@@ -91,8 +91,26 @@ export default function Landing() {
                                 Secure Your Journey
                                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                             </Link>
-                            <button className="w-full sm:w-auto px-10 py-4 bg-slate-900 border border-slate-800 text-white font-bold rounded-2xl hover:bg-slate-800 transition-colors">
-                                Review Trust Protocols
+                            <Link 
+                                to="/demo" 
+                                className="w-full sm:w-auto px-10 py-4 bg-slate-900 border border-slate-800 text-white font-bold rounded-2xl hover:bg-slate-800 transition-colors flex items-center justify-center group"
+                            >
+                                <Zap className="mr-2 w-5 h-5 text-amber-500 group-hover:animate-pulse" />
+                                Review Trust Protocols (Demo)
+                            </Link>
+                        </div>
+
+                        {/* Dummy Access Quick Links */}
+                        <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 w-full mb-2">Prototype Quick Access</p>
+                            <Link to="/demo" className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs font-bold text-rose-500 hover:bg-slate-800 transition-colors flex items-center">
+                                <Shield className="w-3 h-3 mr-2" /> Admin Portal
+                            </Link>
+                            <button onClick={() => window.location.href='/demo'} className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs font-bold text-blue-500 hover:bg-slate-800 transition-colors flex items-center">
+                                <Globe className="w-3 h-3 mr-2" /> Police Cmd
+                            </button>
+                            <button onClick={() => window.location.href='/login'} className="px-4 py-2 bg-slate-900 border border-slate-800 rounded-xl text-xs font-bold text-emerald-500 hover:bg-slate-800 transition-colors flex items-center">
+                                <Navigation className="w-3 h-3 mr-2" /> Tourist Gate
                             </button>
                         </div>
                     </motion.div>

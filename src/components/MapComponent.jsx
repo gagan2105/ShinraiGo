@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, Polyline, Circle } from
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import 'leaflet.heat';
+import { Geolocation } from '@capacitor/geolocation';
 
 // Fix for default marker icons not showing up in React Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -37,14 +38,21 @@ const droneIcon = new L.Icon({
 });
 
 // Snap Map style avatar icon
-const createAvatarIcon = (url, isAlert) => new L.divIcon({
-    html: `<div style="background-image: url('${url}'); background-size: cover; width: 40px; height: 40px; border-radius: 50%; border: 3px solid ${isAlert ? '#f43f5e' : '#6366f1'}; box-shadow: 0 4px 10px rgba(0,0,0,0.3);position:relative;">
-            ${isAlert ? '<div style="position:absolute; inset:-4px; border: 2px solid #f43f5e; border-radius: 50%; animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>' : ''}
-           </div>`,
+const createAvatarIcon = (url, isAlert, name = "ENTITY") => new L.divIcon({
+    html: `
+        <div class="flex flex-col items-center">
+            <div style="background-image: url('${url}'); background-size: cover; width: 44px; height: 44px; border-radius: 50%; border: 3px solid ${isAlert ? '#f43f5e' : '#6366f1'}; box-shadow: 0 4px 15px rgba(0,0,0,0.5); position:relative; overflow: visible;">
+                ${isAlert ? '<div style="position:absolute; inset:-4px; border: 3px solid #f43f5e; border-radius: 50%; animation: ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>' : ''}
+                <div style="position:absolute; bottom: -18px; left: 50%; transform: translateX(-50%); background: rgba(15, 23, 42, 0.9); padding: 2px 6px; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); white-space: nowrap; pointer-events: none;">
+                    <span style="color: white; font-size: 8px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em;">${name.split(' ')[0]}</span>
+                </div>
+            </div>
+        </div>
+    `,
     className: 'custom-avatar-icon',
-    iconSize: [40, 40],
-    iconAnchor: [20, 20],
-    popupAnchor: [0, -20]
+    iconSize: [44, 44],
+    iconAnchor: [22, 22],
+    popupAnchor: [0, -25]
 });
 
 // --- Feature: Heatmap Layer ---
@@ -83,7 +91,7 @@ const DANGER_ZONES = [
     { id: 'z4', name: 'Jim Corbett Core Sector', pos: [29.5333, 78.7733], radius: 8000, risk: 'High', desc: 'Wild elephant & tiger transit corridor' }
 ];
 
-export default function MapComponent({ selectedIncident, heatmapData = [], enableSmartRouting = true, activeUsers = [], droneDispatched = false }) {
+export default function MapComponent({ selectedIncident, heatmapData = [], enableSmartRouting = true, activeUsers = [], droneDispatched = false, showOwnLocation = true }) {
     const defaultCenter = [27.0410, 88.2663];
     const defaultZoom = 13;
 
@@ -93,26 +101,46 @@ export default function MapComponent({ selectedIncident, heatmapData = [], enabl
     const [dronePos, setDronePos] = useState(null);
 
     useEffect(() => {
-        if ("geolocation" in navigator) {
-            navigator.geolocation.getCurrentPosition((position) => {
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                setRealTimePos([lat, lng]);
+        const fetchLocation = async () => {
+            try {
+                // Try Capacitor first (Better for mobile/APK)
+                const coordinates = await Geolocation.getCurrentPosition({
+                    enableHighAccuracy: true
+                });
+                const { latitude, longitude } = coordinates.coords;
+                setRealTimePos([latitude, longitude]);
                 
-                // Spawn a dynamic "Research Test Zone" 1.5km away from the user for demo purposes
                 setTestZone({
                     name: "AI-Flagged Risk Perimeter",
-                    pos: [lat + 0.008, lng + 0.008],
+                    pos: [latitude + 0.008, longitude + 0.008],
                     radius: 1000,
                     risk: 'Warning',
                     desc: 'Simulated dangerous forest blockage detected by Neural Engine'
                 });
-            }, (error) => {
-                console.warn("Geolocation blocked or failed:", error.message);
-            }, {
-                enableHighAccuracy: true
-            });
-        }
+            } catch (capError) {
+                console.warn("Capacitor Geolocation failed, trying Navigator:", capError);
+                // Fallback to standard Navigator
+                if ("geolocation" in navigator) {
+                    navigator.geolocation.getCurrentPosition((position) => {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        setRealTimePos([lat, lng]);
+                        
+                        setTestZone({
+                            name: "AI-Flagged Risk Perimeter",
+                            pos: [lat + 0.008, lng + 0.008],
+                            radius: 1000,
+                            risk: 'Warning',
+                            desc: 'Simulated dangerous forest blockage detected by Neural Engine'
+                        });
+                    }, (error) => {
+                        console.warn("Navigator Geolocation blocked or failed:", error.message);
+                    });
+                }
+            }
+        };
+
+        fetchLocation();
     }, []);
 
     let currentCenter = realTimePos || defaultCenter;
@@ -256,7 +284,7 @@ export default function MapComponent({ selectedIncident, heatmapData = [], enabl
                 <Marker 
                     key={user.id} 
                     position={[user.lat, user.lng]} 
-                    icon={createAvatarIcon(user.profilePic || "https://i.pravatar.cc/150?u="+user.id, false)}
+                    icon={createAvatarIcon(user.profilePic || "https://i.pravatar.cc/150?u="+user.id, false, user.name)}
                 >
                     <Popup>
                         <div className="font-sans text-center">
@@ -317,7 +345,7 @@ export default function MapComponent({ selectedIncident, heatmapData = [], enabl
                         </div>
                     </Popup>
                 </Marker>
-            ) : realTimePos ? (
+            ) : (realTimePos && showOwnLocation) ? (
                 <>
                     <Marker
                         position={realTimePos}

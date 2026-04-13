@@ -1,3 +1,10 @@
+process.on('uncaughtException', (err) => {
+    console.error('CRITICAL UNCAUGHT EXCEPTION:', err);
+});
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('CRITICAL UNHANDLED REJECTION:', reason);
+});
+
 require('dotenv').config();
 require('./config/firebase-admin');
 const express = require('express');
@@ -49,6 +56,16 @@ app.get('/api/feed/live', async (req, res) => {
         res.json(feed);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch live feed' });
+    }
+});
+
+// DELETE All Live Feed records (Purge Dossier)
+app.delete('/api/feed/live', async (req, res) => {
+    try {
+        await PoliceFeed.deleteMany({});
+        res.json({ message: 'Active dossier successfully purged' });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to purge dossiers' });
     }
 });
 
@@ -125,16 +142,53 @@ app.post('/api/digital-id/mint', async (req, res) => {
     }
 });
 
-// GET All Digital IDs
-app.get('/api/digital-id/all', async (req, res) => {
+// GET All Registered User Locations for Police Dashboard
+app.get('/api/admin/user-locations', async (req, res) => {
+    const User = require('./models/User');
     try {
-        const ids = await DigitalId.find().sort({ mintedAt: -1 });
-        res.json(ids);
+        const users = await User.find({ 
+            "lastLocation.lat": { $exists: true },
+            role: 'user' // Only show standard users on the map
+        }).select('name email lastLocation profilePic');
+        
+        const mappedUsers = users.map(u => ({
+            id: u._id,
+            name: u.name,
+            lat: u.lastLocation.lat,
+            lng: u.lastLocation.lng,
+            profilePic: u.profilePic,
+            status: (Date.now() - new Date(u.lastLocation.updatedAt).getTime() < 60000) ? 'Active' : 'Offline'
+        }));
+        
+        res.json(mappedUsers);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch digital IDs' });
+        res.status(500).json({ error: 'Failed to fetch user locations' });
     }
 });
 
+// POST User Heartbeat (Update real-time location)
+app.post('/api/user/heartbeat', async (req, res) => {
+    const User = require('./models/User');
+    const { firebaseUid, lat, lng } = req.body;
+    
+    if (!firebaseUid || !lat || !lng) return res.status(400).json({ error: 'Missing telemetry data' });
+    
+    try {
+        await User.findOneAndUpdate(
+            { firebaseUid },
+            { 
+                lastLocation: { 
+                    lat, 
+                    lng, 
+                    updatedAt: new Date() 
+                } 
+            }
+        );
+        res.json({ status: 'Heartbeat received' });
+    } catch (error) {
+        res.status(500).json({ error: 'Telemetry sync failed' });
+    }
+});
 
 // Export for Vercel Serverless
 module.exports = app;

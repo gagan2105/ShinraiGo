@@ -22,11 +22,13 @@ import UserLayout from "./components/layouts/UserLayout";
 import Dashboard from "./pages/Dashboard";
 import PoliceDashboard from "./pages/PoliceDashboard";
 import AnomalyDetection from "./pages/AnomalyDetection";
+import FacialRecognition from "./pages/FacialRecognition";
 
 // User Pages
 import UserPortal from "./pages/UserPortal";
 import MobileAppSimulator from "./pages/MobileAppSimulator";
 import CompanionTracker from "./pages/CompanionTracker";
+import DemoAccess from "./pages/DemoAccess";
 import NotFound from "./pages/NotFound";
 
 function App() {
@@ -81,13 +83,15 @@ function App() {
 
             <Route path="/admin" element={<RoleProtectedRoute allowedRoles={["admin", "police"]} />}>
               <Route element={<AdminLayout />}>
-                <Route index element={<Navigate to="dashboard" replace />} />
+                <Route index element={<Navigate to="police-cmd" replace />} />
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="police-cmd" element={<PoliceDashboard />} />
                 <Route path="anomalies" element={<AnomalyDetection />} />
+                <Route path="facial-recognition" element={<FacialRecognition />} />
               </Route>
             </Route>
 
+            <Route path="/demo" element={<DemoAccess />} />
             <Route path="/track/:userId" element={<CompanionTracker />} />
             <Route path="*" element={<NotFound />} />
           </Routes>

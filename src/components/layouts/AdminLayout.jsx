@@ -1,13 +1,14 @@
 import { useState } from "react";
 import { Outlet, NavLink } from "react-router-dom";
-import { Home, LayoutDashboard, ShieldCheck, AlertTriangle, LogOut, Menu, X, UserCircle, Smartphone } from "lucide-react";
+import { Home, ShieldCheck, AlertTriangle, LogOut, Menu, X, ScanFace } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useAuth } from "../../context/AuthContext";
 
 const navigation = [
-    { name: 'Home', href: '/admin/dashboard', icon: Home },
     { name: 'Police Cmd', href: '/admin/police-cmd', icon: ShieldCheck },
+    { name: 'Statistics', href: '/admin/dashboard', icon: Home },
     { name: 'Anomaly Detection', href: '/admin/anomalies', icon: AlertTriangle },
+    { name: 'Facial Rec', href: '/admin/facial-recognition', icon: ScanFace },
 ];
 
 export default function AdminLayout() {
@@ -24,7 +25,7 @@ export default function AdminLayout() {
             <aside className="w-full md:w-64 bg-slate-900 flex-shrink-0 flex-col hidden md:flex border-r border-slate-800 shadow-2xl z-20">
                 <div className="h-16 flex items-center px-6 border-b border-rose-800/50 bg-slate-900/50 backdrop-blur-md">
                     <ShieldCheck className="w-7 h-7 text-rose-500 mr-3 animate-pulse" />
-                    <h1 className="text-xl font-bold bg-gradient-to-r from-rose-400 to-orange-400 bg-clip-text text-transparent tracking-tight">Safeguard Admin</h1>
+                    <h1 className="text-xl font-bold bg-gradient-to-r from-rose-400 to-orange-400 bg-clip-text text-transparent tracking-tight uppercase">Police Command</h1>
                 </div>
 
                 <nav className="flex-1 py-6 px-4 space-y-2">

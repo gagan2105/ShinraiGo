@@ -8,6 +8,9 @@ try {
     // 1. Try environment variable (JSON string) - Best for Vercel
     if (process.env.FIREBASE_SERVICE_ACCOUNT) {
         serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+        if (serviceAccount.private_key) {
+             serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
+        }
     } else {
         // 2. Fallback to local file
         serviceAccount = require('../serviceAccountKey.json');

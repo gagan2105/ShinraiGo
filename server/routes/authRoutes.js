@@ -11,7 +11,8 @@ const { verifyToken } = require('../middleware/authMiddleware');
  */
 router.post('/sync', verifyToken, async (req, res) => {
     try {
-        const { uid, email } = req.user;
+        const { uid } = req.user;
+        const email = req.user.email?.toLowerCase(); // Standardize email
         const displayName = req.body.name || req.user.name || 'Unknown User';
 
         // 1. Check if user exists by Firebase UID OR Email (to prevent duplicates during testing)
@@ -23,6 +24,9 @@ router.post('/sync', verifyToken, async (req, res) => {
         });
         
         let isNewUser = false;
+        
+        const adminEmails = ['nexus@shinraigo.admin', 'nexus3340@gmail.com'];
+        const policeEmails = ['officer@shinraigo.police'];
 
         if (user) {
             // Update existing user details if they changed, ONLY if they provided a real name
@@ -30,21 +34,25 @@ router.post('/sync', verifyToken, async (req, res) => {
             if (displayName !== 'Unknown User' || !user.name) {
                 user.name = displayName;
             }
-            // Force admin role for the nexus email
-            if (email === 'nexus@shinraigo.admin' || email === 'nexus3340@gmail.com') {
+            // Force admin/police roles for the specific emails
+            if (adminEmails.includes(email)) {
                 user.role = 'admin';
-            } else if (email === 'officer@shinraigo.police') {
+            } else if (policeEmails.includes(email)) {
                 user.role = 'police';
             }
             await user.save();
         } else {
             // First time this Firebase user is hitting our backend
+            let role = 'user';
+            if (adminEmails.includes(email)) role = 'admin';
+            else if (policeEmails.includes(email)) role = 'police';
+
             user = new User({
                 firebaseUid: uid,
                 email: email,
                 name: displayName,
-                role: (email === 'nexus@shinraigo.admin' || email === 'nexus3340@gmail.com') ? 'admin' : (email === 'officer@shinraigo.police' ? 'police' : 'user'),
-                isOnboarded: false // True new users must onboard
+                role: role,
+                isOnboarded: (role === 'admin' || role === 'police') // Admins skip onboarding
             });
             await user.save();
             isNewUser = true;

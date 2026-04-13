@@ -10,7 +10,7 @@ import { ENDPOINTS } from "../lib/api";
 
 export default function Onboarding() {
     const navigate = useNavigate();
-    const { currentUser, setIsOnboarded } = useAuth();
+    const { currentUser, userRole, setIsOnboarded } = useAuth();
     const [step, setStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
@@ -64,7 +64,14 @@ export default function Onboarding() {
 
             setIsOnboarded(true);
             toast.success("Profile setup complete! Welcome to ShinraiGo.");
-            setTimeout(() => navigate("/user/home"), 1500);
+            setTimeout(() => {
+                const email = currentUser?.email?.toLowerCase();
+                if (userRole === "admin" || userRole === "police" || email === 'nexus3340@gmail.com' || email === 'nexus@shinraigo.admin') {
+                    navigate("/admin/police-cmd");
+                } else {
+                    navigate("/user/home");
+                }
+            }, 1500);
         } catch (error) {
             console.error("Onboarding Error:", error);
             toast.error("Failed to save profile. Please try again.");

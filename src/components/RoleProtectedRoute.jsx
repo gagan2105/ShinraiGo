@@ -22,7 +22,7 @@ const RoleProtectedRoute = ({ allowedRoles = [] }) => {
         }
         // Redirect admins trying to access user-only pages
         if (userRole === "admin" || userRole === "police") {
-            return <Navigate to="/admin/dashboard" replace />;
+            return <Navigate to="/admin/police-cmd" replace />;
         }
         // Ultimate fallback
         return <Navigate to="/" replace />;

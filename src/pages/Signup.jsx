@@ -23,8 +23,14 @@ const Signup = () => {
             if (currentUser.isDummy) {
                 logout();
             } else {
-                if (userRole === "admin" || userRole === "police") navigate("/admin/police-cmd");
-                else navigate("/user/home");
+                setTimeout(() => {
+                    const email = currentUser.email?.toLowerCase();
+                    if (userRole === "admin" || userRole === "police" || email === 'nexus3340@gmail.com' || email === 'nexus@shinraigo.admin') {
+                        navigate("/admin/police-cmd");
+                    } else {
+                        navigate("/user/home");
+                    }
+                }, 1500);
             }
         }
     }, [currentUser, userRole, navigate, logout]);
@@ -55,7 +61,12 @@ const Signup = () => {
                             else navigate("/user/home");
                         }, 1500);
                     } catch (e) {
-                        navigate("/onboarding");
+                        const email = user.email?.toLowerCase();
+                        if (email === 'nexus3340@gmail.com' || email === 'nexus@shinraigo.admin' || email === 'officer@shinraigo.police') {
+                            navigate("/admin/police-cmd");
+                        } else {
+                            navigate("/onboarding");
+                        }
                     }
                 }
             } catch (error) {
@@ -92,8 +103,12 @@ const Signup = () => {
                     else navigate("/user/home");
                 }, 1500);
             } catch (syncErr) {
-                setSuccessAnim(true);
-                setTimeout(() => navigate("/onboarding"), 1500);
+                const email = user.email?.toLowerCase();
+                if (email === 'nexus3340@gmail.com' || email === 'nexus@shinraigo.admin' || email === 'officer@shinraigo.police') {
+                    navigate("/admin/police-cmd");
+                } else {
+                    navigate("/onboarding");
+                }
             }
         } catch (error) {
             toast.error(error.message || "Enrollment failed");
@@ -127,7 +142,12 @@ const Signup = () => {
                     else navigate("/user/home");
                 }, 1500);
             } catch (e) {
-                navigate("/onboarding");
+                const email = user.email?.toLowerCase();
+                if (email === 'nexus3340@gmail.com' || email === 'nexus@shinraigo.admin' || email === 'officer@shinraigo.police') {
+                    navigate("/admin/police-cmd");
+                } else {
+                    navigate("/onboarding");
+                }
             }
         } catch (error) {
             console.error("Google Signup Error:", error);

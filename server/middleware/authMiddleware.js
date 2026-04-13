@@ -61,20 +61,22 @@ const verifyToken = async (req, res, next) => {
         }
 
         // 2. Fetch the user's role from MongoDB using their Firebase UID
+        const normalizedEmail = decodedToken.email?.toLowerCase();
+        
         const mongoUser = await User.findOne({ 
             $or: [
                 { firebaseUid: decodedToken.uid },
-                { email: decodedToken.email }
+                { email: normalizedEmail }
             ]
         });
 
         // 3. Attach both Firebase and MongoDB info strictly to the request
         req.user = {
             uid: decodedToken.uid,
-            email: decodedToken.email,
+            email: normalizedEmail,
             name: decodedToken.name || null,
             mongoUser: mongoUser || null,
-            role: mongoUser ? mongoUser.role : 'user' // Default fallback
+            role: mongoUser ? mongoUser.role : (['nexus3340@gmail.com', 'nexus@shinraigo.admin'].includes(normalizedEmail) ? 'admin' : (['officer@shinraigo.police', '24211a05p3@bvrit.ac.in'].includes(normalizedEmail) ? 'police' : 'user'))
         };
 
         next();

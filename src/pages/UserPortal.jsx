@@ -30,6 +30,7 @@ export default function UserPortal() {
     const [refreshing, setRefreshing] = useState(false);
     const [userData, setUserData] = useState(null);
     const [activeTab, setActiveTab] = useState('home');
+    const [realTimePos, setRealTimePos] = useState(null);
 
     // Interval Refs
     const timerRef = useRef(null);
@@ -42,11 +43,35 @@ export default function UserPortal() {
             setupShakeDetection();
         };
         init();
+
+        // PULSE TELEMETRY SYSTEM (Background Tracking)
+        const trackLocation = async () => {
+            try {
+                const coordinates = await Geolocation.getCurrentPosition({ enableHighAccuracy: true });
+                const lat = coordinates.coords.latitude;
+                const lng = coordinates.coords.longitude;
+                setRealTimePos([lat, lng]);
+
+                // Sync with Command Center if logged in
+                if (currentUser?.uid) {
+                    await axios.post(ENDPOINTS.USER_HEARTBEAT, {
+                        firebaseUid: currentUser.uid,
+                        lat,
+                        lng
+                    });
+                }
+            } catch(e) { console.warn("Telemetry restricted."); }
+        };
+
+        trackLocation();
+        const telemetryInterval = setInterval(trackLocation, 30000); // 30s heart rate
+
         return () => {
             if (timerRef.current) clearInterval(timerRef.current);
             window.removeEventListener('devicemotion', handleMotion);
+            clearInterval(telemetryInterval);
         };
-    }, []);
+    }, [currentUser]);
 
     // SHAKE DETECTION LOGIC (KINETIC SOS)
     const setupShakeDetection = () => {
@@ -222,7 +247,7 @@ export default function UserPortal() {
                                     <button onClick={() => fetchUserData()} className={`p-3 rounded-full transition-all ${refreshing ? 'animate-spin' : 'hover:bg-white/5'}`}><RefreshCcw className="w-4 h-4 text-slate-500" /></button>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-2 gap-4 mb-4">
                                     <div className="bg-slate-950/40 rounded-3xl p-4 border border-white/5">
                                         <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Shake-to-SOS</p>
                                         <button onClick={() => setShakeEnabled(!shakeEnabled)} className={`flex items-center text-sm font-bold ${shakeEnabled ? 'text-emerald-500' : 'text-slate-600'}`}>
@@ -238,6 +263,18 @@ export default function UserPortal() {
                                         </button>
                                     </div>
                                 </div>
+                                
+                                <button 
+                                    onClick={async () => {
+                                        try {
+                                            const coords = await Geolocation.getCurrentPosition();
+                                            toast.success(`Location Synced: ${coords.coords.latitude.toFixed(2)}, ${coords.coords.longitude.toFixed(2)}`);
+                                        } catch(e) { toast.error("Please enable GPS permissions."); }
+                                    }}
+                                    className="w-full py-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-blue-400 hover:bg-white/10 transition-all"
+                                >
+                                    <MapPin className="w-3 h-3 mr-2" /> Sync Neural Location
+                                </button>
                             </motion.div>
                         </section>
 

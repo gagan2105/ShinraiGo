@@ -14,4 +14,6 @@ export const ENDPOINTS = {
     DIGITAL_ID_MINT: `${API_BASE_URL}/api/digital-id/mint`,
     DIGITAL_ID_ALL: `${API_BASE_URL}/api/digital-id/all`,
     PROFILE_UPDATE: `${API_BASE_URL}/api/auth/profile`,
+    USER_HEARTBEAT: `${API_BASE_URL}/api/user/heartbeat`,
+    USER_LOCATIONS: `${API_BASE_URL}/api/admin/user-locations`,
 };

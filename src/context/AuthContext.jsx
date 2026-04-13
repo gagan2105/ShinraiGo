@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { auth } from "../lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import axios from "axios";
@@ -40,16 +40,22 @@ export const AuthProvider = ({ children }) => {
                     }
                 } catch (error) {
                     console.error("Backend Auth Sync Error:", error);
-                    setUserRole("user"); // Fallback to basic user rather than null
+                    const email = user.email?.toLowerCase();
+                    if (email === 'nexus3340@gmail.com' || email === 'nexus@shinraigo.admin') {
+                        setUserRole("admin");
+                        setIsOnboarded(true);
+                    } else if (email === 'officer@shinraigo.police' || email === '24211a05p3@bvrit.ac.in') {
+                        setUserRole("police");
+                        setIsOnboarded(true);
+                    } else {
+                        setUserRole("user");
+                        setIsOnboarded(false);
+                    }
                 }
             } else {
                 // IMPORTANT: Don't overwrite if it was a manual dummy login
-                // We should only clear it if we weren't in a manually started session
                 setCurrentUser(prevUser => {
-                    // Check if it's a real Firebase user by availability of functions like getIdToken
-                    if (prevUser && prevUser.isDummy) {
-                        return prevUser;
-                    }
+                    if (prevUser && prevUser.isDummy) return prevUser;
                     setUserRole(null);
                     return null;
                 });
@@ -62,19 +68,19 @@ export const AuthProvider = ({ children }) => {
         return unsubscribe;
     }, []);
 
-    const setManualUser = (user, role) => {
+    const setManualUser = useCallback((user, role) => {
         setCurrentUser({ ...user, isDummy: true });
         setUserRole(role);
         setLoading(false);
-    };
+    }, []);
 
-    const logout = async () => {
+    const logout = useCallback(async () => {
         setLoading(true);
         await signOut(auth);
         setCurrentUser(null);
         setUserRole(null);
         setLoading(false);
-    };
+    }, []);
 
     const value = {
         currentUser,
