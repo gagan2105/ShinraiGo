@@ -4,6 +4,7 @@ import { ENDPOINTS } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import axios from "axios";
 import { useEffect, useState } from "react";
+import { Geolocation } from '@capacitor/geolocation';
 import { Bell, AlertTriangle, Navigation, Activity, ShieldAlert, ShieldCheck, QrCode as QrCodeIcon, Bot, Settings, Mic, Send, ChevronRight, Download, FileText, CheckCircle, Info, LogOut, Home } from "lucide-react";
 
 export default function MobileAppSimulator() {
@@ -48,10 +49,18 @@ export default function MobileAppSimulator() {
 
     const handlePanic = async () => {
         setPanicMode(true);
+        let liveLocation = 'Darjeeling, West Bengal'; // Default fallback
+        try {
+            const coordinates = await Geolocation.getCurrentPosition();
+            liveLocation = `Lat: ${coordinates.coords.latitude.toFixed(4)}, Lng: ${coordinates.coords.longitude.toFixed(4)}`;
+        } catch (e) {
+            console.warn("GPS Lock failed, using simulated location");
+        }
+        
         try {
             await axios.post(ENDPOINTS.PANIC_ALERT, {
                 user: userData?.name || currentUser?.displayName || "Prototype Traveler",
-                location: 'Darjeeling, West Bengal',
+                location: liveLocation,
                 idNumber: userData?.firebaseUid || 'AADHAAR-SIM-NODE',
                 phone: userData?.phone || '+91 00000 00000',
                 bloodGroup: userData?.bloodGroup || 'O+'

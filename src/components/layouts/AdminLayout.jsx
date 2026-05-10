@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Outlet, NavLink } from "react-router-dom";
-import { Home, ShieldCheck, AlertTriangle, LogOut, Menu, X, ScanFace } from "lucide-react";
+import { Home, ShieldCheck, AlertTriangle, LogOut, Menu, X } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useAuth } from "../../context/AuthContext";
 
@@ -8,7 +8,6 @@ const navigation = [
     { name: 'Police Cmd', href: '/admin/police-cmd', icon: ShieldCheck },
     { name: 'Statistics', href: '/admin/dashboard', icon: Home },
     { name: 'Anomaly Detection', href: '/admin/anomalies', icon: AlertTriangle },
-    { name: 'Facial Rec', href: '/admin/facial-recognition', icon: ScanFace },
 ];
 
 export default function AdminLayout() {
@@ -20,9 +19,9 @@ export default function AdminLayout() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row font-sans">
+        <div className="h-screen overflow-hidden bg-slate-50 flex flex-col md:flex-row font-sans">
             {/* Sidebar */}
-            <aside className="w-full md:w-64 bg-slate-900 flex-shrink-0 flex-col hidden md:flex border-r border-slate-800 shadow-2xl z-20">
+            <aside className="w-full md:w-64 h-full bg-slate-900 flex-shrink-0 flex-col hidden md:flex border-r border-slate-800 shadow-2xl z-20 overflow-y-auto">
                 <div className="h-16 flex items-center px-6 border-b border-rose-800/50 bg-slate-900/50 backdrop-blur-md">
                     <ShieldCheck className="w-7 h-7 text-rose-500 mr-3 animate-pulse" />
                     <h1 className="text-xl font-bold bg-gradient-to-r from-rose-400 to-orange-400 bg-clip-text text-transparent tracking-tight uppercase">Police Command</h1>

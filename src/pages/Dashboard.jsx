@@ -1,4 +1,6 @@
-import { Users, AlertCircle, Map, Activity, BellRing, ArrowUpRight, ArrowDownRight } from "lucide-react";
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Users, AlertCircle, Map, Activity, BellRing, ArrowUpRight, ArrowDownRight, X, Shield, Phone, Crosshair, Clock, FileText } from "lucide-react";
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { toast } from "sonner";
 import AdvancedIntelligenceDashboard from "../components/AdvancedIntelligenceDashboard";
@@ -21,8 +23,100 @@ const recentAlerts = [
 ];
 
 export default function Dashboard() {
+    const [selectedIncident, setSelectedIncident] = useState(null);
+
     return (
-        <div className="space-y-6 animate-in fade-in duration-500">
+        <div className="space-y-6 animate-in fade-in duration-500 relative">
+            <AnimatePresence>
+                {selectedIncident && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div 
+                            initial={{ opacity: 0 }} 
+                            animate={{ opacity: 1 }} 
+                            exit={{ opacity: 0 }} 
+                            className="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" 
+                            onClick={() => setSelectedIncident(null)} 
+                        />
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.95, y: 20 }} 
+                            animate={{ opacity: 1, scale: 1, y: 0 }} 
+                            exit={{ opacity: 0, scale: 0.95, y: 20 }} 
+                            className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-200"
+                        >
+                            <div className="flex items-center justify-between p-6 border-b border-slate-100">
+                                <div className="flex items-center space-x-3">
+                                    <div className={`p-2 rounded-lg ${selectedIncident.status === 'Critical' ? 'bg-rose-100 text-rose-600' : selectedIncident.status === 'Resolved' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'}`}>
+                                        <AlertCircle className="w-6 h-6" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-slate-900">{selectedIncident.type}</h3>
+                                        <div className="flex items-center text-sm font-medium text-slate-500 mt-1">
+                                            <span className={`px-2 py-0.5 rounded text-xs font-bold uppercase tracking-wider mr-2 ${selectedIncident.status === 'Critical' ? 'bg-rose-100 text-rose-700' : selectedIncident.status === 'Resolved' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                                                {selectedIncident.status}
+                                            </span>
+                                            <Clock className="w-4 h-4 mr-1" /> {selectedIncident.time}
+                                        </div>
+                                    </div>
+                                </div>
+                                <button onClick={() => setSelectedIncident(null)} className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors">
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
+                            
+                            <div className="p-6 space-y-6">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-4">
+                                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                            <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Subject Identity</label>
+                                            <p className="text-sm font-semibold text-slate-800 flex items-center mt-1"><Users className="w-4 h-4 mr-2 text-slate-400" /> {selectedIncident.user}</p>
+                                        </div>
+                                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                            <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Incident Location</label>
+                                            <p className="text-sm font-semibold text-slate-800 flex items-center mt-1"><Map className="w-4 h-4 mr-2 text-slate-400" /> {selectedIncident.location}</p>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-4">
+                                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                            <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider flex items-center">
+                                                <Shield className="w-3 h-3 mr-1" /> Threat Assessment
+                                            </label>
+                                            <div className="mt-2">
+                                                <div className="w-full bg-slate-200 rounded-full h-2 relative overflow-hidden">
+                                                    <div className={`h-2 rounded-full ${selectedIncident.status === 'Critical' ? 'bg-rose-500 animate-pulse' : selectedIncident.status === 'Resolved' ? 'bg-emerald-500' : 'bg-amber-500'}`} style={{ width: selectedIncident.status === 'Critical' ? '85%' : selectedIncident.status === 'Resolved' ? '0%' : '45%' }} />
+                                                </div>
+                                                <div className="flex justify-between mt-1">
+                                                    <span className="text-xs font-bold text-slate-500">{selectedIncident.status === 'Critical' ? 'Level 4' : selectedIncident.status === 'Resolved' ? 'Level 0' : 'Level 2'}</span>
+                                                    <span className={`text-xs font-black ${selectedIncident.status === 'Critical' ? 'text-rose-600' : selectedIncident.status === 'Resolved' ? 'text-emerald-600' : 'text-amber-600'}`}>{selectedIncident.status === 'Critical' ? '85% CONFIDENCE' : selectedIncident.status === 'Resolved' ? 'RESOLVED' : '45% CONFIDENCE'}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                            <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Automated Summary</label>
+                                            <p className="text-xs font-medium text-slate-600 mt-1 leading-relaxed">
+                                                {selectedIncident.type === "Panic Button triggered" ? "User initiated an active SOS signal. GPS tracking confirms stationary position. Nearby patrols alerted." : 
+                                                 selectedIncident.type === "Route Deviation Detected" ? "Subject deviated from planned itinerary by >5km. Communication attempts pending." :
+                                                 "System logged anomaly. Awaiting manual review."}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-6 bg-slate-50 border-t border-slate-100 flex flex-wrap gap-3">
+                                <button onClick={() => { toast.success("Establishing secure comms..."); setSelectedIncident(null); }} className="flex-1 min-w-[140px] bg-white border border-slate-200 text-slate-700 font-semibold text-sm py-2.5 rounded-lg flex items-center justify-center hover:bg-slate-50 transition-colors shadow-sm">
+                                    <Phone className="w-4 h-4 mr-2" /> Call User
+                                </button>
+                                <button onClick={() => { toast.info("Dispatching drone to coordinates."); setSelectedIncident(null); }} className="flex-1 min-w-[140px] bg-indigo-50 border border-indigo-200 text-indigo-700 font-semibold text-sm py-2.5 rounded-lg flex items-center justify-center hover:bg-indigo-100 transition-colors shadow-sm">
+                                    <Crosshair className="w-4 h-4 mr-2" /> Dispatch Drone
+                                </button>
+                                <button onClick={() => { toast.success("Incident marked as resolved."); setSelectedIncident(null); }} className="flex-1 min-w-[140px] bg-slate-900 text-white font-semibold text-sm py-2.5 rounded-lg flex items-center justify-center hover:bg-slate-800 transition-colors shadow-sm">
+                                    <FileText className="w-4 h-4 mr-2" /> Resolve Incident
+                                </button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h2 className="text-2xl font-bold text-slate-900 tracking-tight">System Overview</h2>
@@ -144,7 +238,7 @@ export default function Dashboard() {
                                 <div className="mt-3 pt-3 border-t border-slate-200 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
                                     <span className="text-xs font-medium text-slate-600">{alert.user}</span>
                                     <button
-                                        onClick={() => toast.info(`Reviewing incident report for ${alert.user}`)}
+                                        onClick={(e) => { e.stopPropagation(); setSelectedIncident(alert); }}
                                         className="text-xs bg-slate-900 text-white px-2 py-1 rounded-md hover:bg-slate-800 transition-colors">
                                         Review
                                     </button>

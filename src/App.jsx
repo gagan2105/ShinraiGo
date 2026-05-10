@@ -22,7 +22,6 @@ import UserLayout from "./components/layouts/UserLayout";
 import Dashboard from "./pages/Dashboard";
 import PoliceDashboard from "./pages/PoliceDashboard";
 import AnomalyDetection from "./pages/AnomalyDetection";
-import FacialRecognition from "./pages/FacialRecognition";
 
 // User Pages
 import UserPortal from "./pages/UserPortal";
@@ -87,7 +86,6 @@ function App() {
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="police-cmd" element={<PoliceDashboard />} />
                 <Route path="anomalies" element={<AnomalyDetection />} />
-                <Route path="facial-recognition" element={<FacialRecognition />} />
               </Route>
             </Route>
 

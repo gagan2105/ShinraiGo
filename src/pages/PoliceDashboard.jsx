@@ -103,10 +103,10 @@ export default function PoliceDashboard() {
     };
 
     return (
-        <div className="h-[calc(100vh-80px)] flex space-x-4 animate-in fade-in duration-500">
+        <div className="h-full min-h-[800px] flex flex-col xl:flex-row gap-4 animate-in fade-in duration-500">
 
             {/* LEFT: User/Incident Details Panel */}
-            <div className="w-1/4 bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col">
+            <div className="w-full xl:w-1/4 bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col min-h-[500px]">
                 <div className="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
                     <h2 className="font-bold text-slate-800 flex items-center"><Search className="w-4 h-4 mr-2 text-slate-400" /> Dossier</h2>
                 </div>
@@ -140,19 +140,22 @@ export default function PoliceDashboard() {
                                         <p className="text-sm font-semibold text-slate-800 flex items-center mt-1"><MapPin className="w-4 h-4 mr-1 text-slate-400" /> {selectedUser.location}</p>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div>
+                                        <div className="min-w-0">
                                             <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">ID Number</label>
-                                            <p className="text-sm font-semibold text-slate-800 mt-1">{selectedUser.idNumber}</p>
+                                            <p className="text-sm font-semibold text-slate-800 mt-1 truncate" title={selectedUser.idNumber}>{selectedUser.idNumber}</p>
                                         </div>
-                                        <div>
+                                        <div className="min-w-0">
                                             <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Blood Type</label>
-                                            <p className="text-sm font-semibold text-rose-600 mt-1">{selectedUser.bloodGroup}</p>
+                                            <p className="text-sm font-semibold text-rose-600 mt-1 truncate" title={selectedUser.bloodGroup}>{selectedUser.bloodGroup}</p>
                                         </div>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div>
+                                        <div className="min-w-0">
                                             <label className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Contact Number</label>
-                                            <p className="text-sm font-semibold text-slate-800 flex items-center mt-1"><Phone className="w-4 h-4 mr-1 text-slate-400" /> {selectedUser.phone}</p>
+                                            <p className="text-sm font-semibold text-slate-800 flex items-center mt-1 truncate" title={selectedUser.phone}>
+                                                <Phone className="w-4 h-4 mr-1 shrink-0 text-slate-400" />
+                                                <span className="truncate">{selectedUser.phone}</span>
+                                            </p>
                                         </div>
                                         {selectedUser.type === 'panic' && (
                                             <div>
@@ -175,39 +178,7 @@ export default function PoliceDashboard() {
                                     </div>
                                 </div>
 
-                                {selectedUser.type === 'panic' && (
-                                    <div className="mt-4 pt-4 border-t border-slate-100">
-                                        <div className="flex items-center justify-between mb-2">
-                                            <label className="text-[10px] uppercase font-bold text-rose-500 tracking-wider flex items-center">
-                                                <Video className="w-3 h-3 mr-1" /> Automated CCTV Intercept
-                                            </label>
-                                            <span className="text-[8px] font-mono bg-rose-100 text-rose-600 px-1 py-0.5 rounded animate-pulse">LIVE LINK</span>
-                                        </div>
-                                        <div className="relative w-full h-40 bg-slate-900 rounded-lg overflow-hidden border-2 border-slate-700 shadow-inner group">
-                                            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/stardust.png')] opacity-30 animate-pulse mix-blend-overlay"></div>
-                                            {/* Simulated Camera Glitch */}
-                                            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-500/10 to-transparent w-full h-full translate-y-[-100%] group-hover:translate-y-[100%] transition-transform duration-[3s] ease-linear repeat-infinite"></div>
-                                            
-                                            <div className="absolute inset-0 flex items-center justify-center pt-4">
-                                                <div className="w-20 h-28 border-[1.5px] border-rose-500/80 relative shadow-[0_0_15px_rgba(244,63,94,0.4)] bg-rose-500/10">
-                                                    {/* Tracking Corners */}
-                                                    <div className="absolute -top-1 -left-1 w-2 h-2 border-t-2 border-l-2 border-rose-500"></div>
-                                                    <div className="absolute -top-1 -right-1 w-2 h-2 border-t-2 border-r-2 border-rose-500"></div>
-                                                    <div className="absolute -bottom-1 -left-1 w-2 h-2 border-b-2 border-l-2 border-rose-500"></div>
-                                                    <div className="absolute -bottom-1 -right-1 w-2 h-2 border-b-2 border-r-2 border-rose-500"></div>
-                                                    <div className="absolute -top-4 left-0 text-[8px] text-rose-400 font-mono bg-slate-900/90 px-1 rounded shadow tracking-widest flex items-center gap-1">
-                                                        <Crosshair className="w-2 h-2" /> WEAPON DETECTED
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div className="absolute bottom-1 left-2 text-[8px] text-white/70 font-mono z-10 w-full flex justify-between pr-4 items-center">
-                                                <span>CAM-04-TIGER-HILL</span>
-                                                <span className="text-rose-400 animate-pulse font-bold">POS: {selectedUser.location?.slice(0, 8)}...</span>
-                                                <span className="text-emerald-400">FPS: 59.9</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
+
 
                                 <div className="pt-4 space-y-2 border-t border-slate-100">
                                     <button
@@ -263,7 +234,7 @@ export default function PoliceDashboard() {
             </div>
 
             {/* MIDDLE: Live Tracking Map */}
-            <div className="flex-1 bg-slate-900 rounded-2xl shadow-xl overflow-hidden relative flex flex-col border border-slate-800">
+            <div className="flex-1 w-full xl:w-auto bg-slate-900 rounded-2xl shadow-xl overflow-hidden relative flex flex-col border border-slate-800 min-h-[500px]">
                 <div className="absolute top-4 left-4 z-20 bg-slate-800/80 backdrop-blur-md border border-slate-700 text-white px-4 py-2 rounded-xl flex items-center shadow-lg">
                     <Crosshair className="w-4 h-4 mr-2 text-emerald-400 animate-pulse" />
                     <span className="text-sm font-semibold">Live Geo-Spatial Tracking Node</span>
@@ -358,7 +329,7 @@ export default function PoliceDashboard() {
             </div>
 
             {/* RIGHT: Live Incident Feed */}
-            <div className="w-1/3 bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col">
+            <div className="w-full xl:w-1/3 bg-white rounded-2xl shadow-sm border border-slate-200/60 overflow-hidden flex flex-col min-h-[500px]">
                 <div className="p-4 bg-slate-50 border-b border-slate-100 flex items-center justify-between">
                     <h2 className="font-bold text-slate-800 flex items-center"><Bell className="w-4 h-4 mr-2" /> Live Intel Feed</h2>
                     <span className="flex h-2 w-2 relative">
