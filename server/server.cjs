@@ -9,7 +9,6 @@ require('dotenv').config();
 require('./config/firebase-admin');
 const express = require('express');
 const cors = require('cors');
-const { v4: uuidv4 } = require('uuid');
 const mongoose = require('mongoose');
 
 // Models
