@@ -104,6 +104,22 @@ const Login = () => {
     const handleDummyLogin = async (role) => {
         setLoading(true);
         try {
+            const tokenMap = {
+                'admin': 'DUMMY_ADMIN_TOKEN',
+                'police': 'DUMMY_POLICE_TOKEN',
+                'user': 'DUMMY_USER_TOKEN'
+            };
+            
+            // Sync dummy user to database so their profile exists for Onboarding updates
+            try {
+                await axios.post(ENDPOINTS.SYNC, { name: `Shinrai ${role}` }, {
+                    headers: { Authorization: `Bearer ${tokenMap[role]}` },
+                    timeout: 5000
+                });
+            } catch (e) {
+                console.warn("Dummy sync failed, proceeding locally:", e);
+            }
+
             setManualUser({
                 uid: role === 'admin' ? 'mock-admin-uid' : (role === 'police' ? 'mock-police-uid' : 'mock-user-uid'),
                 email: role === 'admin' ? 'nexus@shinraigo.admin' : (role === 'police' ? 'officer@shinraigo.police' : 'demo@shinraigo.test'),
