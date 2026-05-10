@@ -67,7 +67,7 @@ const Login = () => {
             const email = user.email?.toLowerCase();
             if (email === 'nexus3340@gmail.com' || email === 'nexus@shinraigo.admin') {
                 navigate("/admin/police-cmd");
-            } else if (email === 'officer@shinraigo.police' || email === '24211a05p3@bvrit.ac.in') {
+            } else if (email === 'officer@shinraigo.police') {
                 navigate("/admin/police-cmd");
             } else {
                 navigate("/user/home");
@@ -106,7 +106,7 @@ const Login = () => {
         try {
             setManualUser({
                 uid: role === 'admin' ? 'mock-admin-uid' : (role === 'police' ? 'mock-police-uid' : 'mock-user-uid'),
-                email: role === 'admin' ? 'nexus@shinraigo.admin' : (role === 'police' ? '24211a05p3@bvrit.ac.in' : 'demo@shinraigo.test'),
+                email: role === 'admin' ? 'nexus@shinraigo.admin' : (role === 'police' ? 'officer@shinraigo.police' : 'demo@shinraigo.test'),
                 displayName: `Shinrai ${role.charAt(0).toUpperCase() + role.slice(1)}`,
                 isDummy: true
             }, role);

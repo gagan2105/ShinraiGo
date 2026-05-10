@@ -44,7 +44,7 @@ export const AuthProvider = ({ children }) => {
                     if (email === 'nexus3340@gmail.com' || email === 'nexus@shinraigo.admin') {
                         setUserRole("admin");
                         setIsOnboarded(true);
-                    } else if (email === 'officer@shinraigo.police' || email === '24211a05p3@bvrit.ac.in') {
+                    } else if (email === 'officer@shinraigo.police') {
                         setUserRole("police");
                         setIsOnboarded(true);
                     } else {

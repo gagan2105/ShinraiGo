@@ -76,7 +76,7 @@ const verifyToken = async (req, res, next) => {
             email: normalizedEmail,
             name: decodedToken.name || null,
             mongoUser: mongoUser || null,
-            role: mongoUser ? mongoUser.role : (['nexus3340@gmail.com', 'nexus@shinraigo.admin'].includes(normalizedEmail) ? 'admin' : (['officer@shinraigo.police', '24211a05p3@bvrit.ac.in'].includes(normalizedEmail) ? 'police' : 'user'))
+            role: mongoUser ? mongoUser.role : (['nexus3340@gmail.com', 'nexus@shinraigo.admin'].includes(normalizedEmail) ? 'admin' : (['officer@shinraigo.police'].includes(normalizedEmail) ? 'police' : 'user'))
         };
 
         next();
