@@ -20,20 +20,16 @@ const Signup = () => {
 
     useEffect(() => {
         if (currentUser && userRole) {
-            if (currentUser.isDummy) {
-                logout();
-            } else {
-                setTimeout(() => {
-                    const email = currentUser.email?.toLowerCase();
-                    if (userRole === "admin" || userRole === "police" || email === 'nexus3340@gmail.com' || email === 'nexus@shinraigo.admin') {
-                        navigate("/admin/police-cmd");
-                    } else {
-                        navigate("/user/home");
-                    }
-                }, 1500);
-            }
+            setTimeout(() => {
+                const email = currentUser.email?.toLowerCase();
+                if (userRole === "admin" || userRole === "police" || email === 'nexus3340@gmail.com' || email === 'nexus@shinraigo.admin') {
+                    navigate("/admin/police-cmd");
+                } else {
+                    navigate("/user/home");
+                }
+            }, 1500);
         }
-    }, [currentUser, userRole, navigate, logout]);
+    }, [currentUser, userRole, navigate]);
 
     useEffect(() => {
         const checkRedirect = async () => {

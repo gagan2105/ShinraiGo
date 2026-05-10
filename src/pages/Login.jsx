@@ -19,14 +19,11 @@ const Login = () => {
 
     useEffect(() => {
         if (currentUser && userRole) {
-            if (currentUser.isDummy) {
-                logout();
-            } else {
-                if (userRole === "admin" || userRole === "police") navigate("/admin/police-cmd");
-                else navigate("/user/home");
-            }
+            // Removed automatic logout for dummy users
+            if (userRole === "admin" || userRole === "police") navigate("/admin/police-cmd");
+            else navigate("/user/home");
         }
-    }, [currentUser, userRole, navigate, logout]);
+    }, [currentUser, userRole, navigate]);
 
     // Handle initial auth check on mount
     useEffect(() => {

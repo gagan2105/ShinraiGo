@@ -89,7 +89,7 @@ router.post('/sync', verifyToken, async (req, res) => {
 router.put('/profile', verifyToken, async (req, res) => {
     try {
         const { uid } = req.user;
-        const { fullName, phone, bloodGroup, nationality, emergencyContact, profilePic } = req.body;
+        const { fullName, phone, bloodGroup, nationality, emergencyContact, profilePic, idType, idNumber } = req.body;
 
         const user = await User.findOneAndUpdate(
             { firebaseUid: uid },
@@ -100,6 +100,8 @@ router.put('/profile', verifyToken, async (req, res) => {
                 nationality,
                 emergencyContact: typeof emergencyContact === 'string' ? { phone: emergencyContact } : emergencyContact,
                 profilePic,
+                idType,
+                idNumber,
                 isOnboarded: true 
             },
             { new: true }

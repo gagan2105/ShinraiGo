@@ -33,6 +33,8 @@ const userSchema = new mongoose.Schema({
         phone: String,
         relation: String
     },
+    idType: String,
+    idNumber: String,
     isOnboarded: {
         type: Boolean,
         default: false

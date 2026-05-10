@@ -12,8 +12,10 @@ try {
              serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
         }
     } else {
-        // 2. Fallback to local file
-        serviceAccount = require('../serviceAccountKey.json');
+        // 2. Fallback to local file with absolute path
+        const path = require('path');
+        const serviceAccountPath = path.join(__dirname, '..', 'serviceAccountKey.json');
+        serviceAccount = require(serviceAccountPath);
     }
 
     if (!admin.apps.length) {
