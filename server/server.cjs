@@ -33,9 +33,13 @@ app.use(express.urlencoded({ limit: '50mb', extended: true }));
 // MongoDB Connection
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/shinraigo';
 
-mongoose.connect(MONGODB_URI)
-    .then(() => console.log('Connected to MongoDB'))
-    .catch(err => console.error('MongoDB connection error:', err));
+try {
+    mongoose.connect(MONGODB_URI)
+        .then(() => console.log('Connected to MongoDB'))
+        .catch(err => console.error('MongoDB async connection error:', err.message));
+} catch (err) {
+    console.error('CRITICAL: Synchronous error during MongoDB connection parsing. Check your MONGODB_URI format.', err.message);
+}
 
 
 // ======= ROUTES =======
