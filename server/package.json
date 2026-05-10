@@ -19,6 +19,6 @@
     "firebase-admin": "^13.7.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.2.3",
-    "uuid": "^13.0.0"
+    "uuid": "^9.0.1"
   }
 }

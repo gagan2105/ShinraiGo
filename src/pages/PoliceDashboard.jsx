@@ -24,12 +24,15 @@ export default function PoliceDashboard() {
             try {
                 const response = await fetch(ENDPOINTS.LIVE_FEED);
                 const data = await response.json();
+                if (!Array.isArray(data)) {
+                    throw new Error("Invalid response format");
+                }
                 setFeed(data);
                 
                 // Extract coordinates for heatmap from panic incidents
                 // Note: In a production build, these locations are parsed from the string "Lat: X, Lng: Y"
                 const points = data
-                    .filter(item => item.type === 'panic' && item.location.includes('Lat:'))
+                    .filter(item => item.type === 'panic' && item.location && item.location.includes('Lat:'))
                     .map(item => {
                         const parts = item.location.split(',');
                         const lat = parseFloat(parts[0].replace('Lat:', '').trim());
@@ -42,6 +45,7 @@ export default function PoliceDashboard() {
             } catch (error) {
                 console.error("Failed to fetch live feed", error);
                 toast.error("Lost connection to Command Server");
+                setFeed([]);
                 setIsLoading(false);
             }
         };
